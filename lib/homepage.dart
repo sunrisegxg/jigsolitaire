@@ -123,8 +123,8 @@ class _HomePageState extends State<HomePage> {
                       child: GridView.builder(
                         gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
                           crossAxisCount: 5,
-                          crossAxisSpacing: 1,
-                          mainAxisSpacing: 1,
+                          crossAxisSpacing: 0,
+                          mainAxisSpacing: 0,
                           childAspectRatio: 0.7,
                         ),
                         itemCount: 25,
@@ -132,15 +132,34 @@ class _HomePageState extends State<HomePage> {
                           return Stack(
                             alignment: Alignment.center,
                             children: [
-                              ClipRRect(
-                                borderRadius: BorderRadius.circular(4),
-                                child: Image.asset(
-                                  'assets/backcard.jpeg',
-                                  fit: BoxFit.cover,
-                                  width: double.infinity,
-                                  height: double.infinity,
+                              Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: Colors.black,
+                                    width: 1,
+                                  ),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Container(
+                                  decoration: BoxDecoration(
+                                    border: Border.all(
+                                      color: Colors.white,
+                                      width: 1,
+                                    ),
+                                    borderRadius: BorderRadius.circular(4),
+                                  ),
+                                  child: ClipRRect(
+                                    borderRadius: BorderRadius.circular(4),
+                                    child: Image.asset(
+                                      'assets/backcard.jpeg',
+                                      fit: BoxFit.cover,
+                                      width: double.infinity,
+                                      height: double.infinity,
+                                    ),
+                                  ),
                                 ),
                               ),
+
                               // Số thứ tự
                               Text(
                                 '${index + 1}',
@@ -165,6 +184,9 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                   ),
+
+                  SizedBox(height: 24),
+
                   Padding(
                     padding: EdgeInsets.only(
                       left: MediaQuery.of(context).size.width * 0.05,
