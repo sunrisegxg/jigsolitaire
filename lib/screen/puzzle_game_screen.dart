@@ -190,42 +190,58 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       }
 
       board = nextBoard;
-      _updateGroups();
 
-      // KIỂM TRA MERGE (GỘP CỤM MỚI)
-      Map<int, List<PuzzlePiece>> newGroups = {};
-      for (final p in board) {
-        newGroups.putIfAbsent(p.groupId, () => []).add(p);
-      }
-
-      final Set<int> mergedGroupIds = {};
-
-      for (final entry in newGroups.entries) {
-        final pieces = entry.value;
-
-        final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
-
-        if (oldGroupIds.length > 1) {
-          mergedGroupIds.add(entry.key);
+      // để delay cho updategroups giúp tránh bị merge border trước khi mảnh bay vào
+      Future.delayed(const Duration(milliseconds: 450), () {
+        if (mounted) {
+          setState(() {
+            _updateGroups();
+          });
         }
-      }
+      });
 
-      if (mergedGroupIds.isNotEmpty) {
-        Future.delayed(const Duration(milliseconds: 450), () {
-          if (mounted) {
-            setState(() {
+      //để delay chờ updategroups
+      Future.delayed(const Duration(milliseconds: 450), () {
+        if (mounted) {
+          setState(() {
+            // KIỂM TRA MERGE (GỘP CỤM MỚI)
+            Map<int, List<PuzzlePiece>> newGroups = {};
+            for (final p in board) {
+              newGroups.putIfAbsent(p.groupId, () => []).add(p);
+            }
+
+            final Set<int> mergedGroupIds = {};
+
+            for (final entry in newGroups.entries) {
+              final pieces = entry.value;
+
+              final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
+
+              if (oldGroupIds.length > 1) {
+                mergedGroupIds.add(entry.key);
+              }
+            }
+
+            if (mergedGroupIds.isNotEmpty) {
+              //để delay này giúp tránh bị pulse ngay khi vừa drop mảnh vào mà chỉ pulse sau khi mảnh bay vào và đã ổn định vị trí mới
+              Future.delayed(const Duration(milliseconds: 50), () {
+                if (mounted) {
+                  setState(() {});
+                }
+              });
               pulsingGroups.addAll(mergedGroupIds);
-            });
-          }
-        });
-        Future.delayed(const Duration(milliseconds: 400), () {
-          if (mounted) {
-            setState(() {
-              pulsingGroups.removeAll(mergedGroupIds);
-            });
-          }
-        });
-      }
+
+              Future.delayed(const Duration(milliseconds: 400), () {
+                if (mounted) {
+                  setState(() {
+                    pulsingGroups.removeAll(mergedGroupIds);
+                  });
+                }
+              });
+            }
+          });
+        }
+      });
     });
   }
 
