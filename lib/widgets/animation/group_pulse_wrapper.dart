@@ -42,7 +42,7 @@ class _GroupPulseWrapperState extends State<GroupPulseWrapper>
   }
 
   @override
-  void didUpdateWidget(covariant GroupPulseWrapper oldWidget) {
+  void didUpdateWidget(covariant GroupPulseWrapper oldWidget)  {
     super.didUpdateWidget(oldWidget);
     if (widget.trigger && !oldWidget.trigger) {
       _controller.forward(from: 0.0);

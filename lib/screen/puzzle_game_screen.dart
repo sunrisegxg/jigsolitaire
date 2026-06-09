@@ -85,8 +85,6 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
     }
   }
 
-
-
   int _find(List<int> parent, int i) {
     if (parent[i] == i) return i;
     return parent[i] = _find(parent, parent[i]);
@@ -291,141 +289,168 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: LayoutBuilder(
                   builder: (context, constraints) {
-                    // Tính chính xác tileSize từ không gian thực tế
-                    double tileSize = constraints.maxWidth / 4;
+                    // 1. TÍNH TOÁN KÍCH THƯỚC CHI TIẾT
+                    // Vì không dùng GridView nữa, ta phải tự tính width và height dựa trên aspectRatio
+                    double tileWidth = constraints.maxWidth / gridSize;
+                    double tileHeight = tileWidth / aspectRatio;
 
-                    return GridView.builder(
-                      physics: const NeverScrollableScrollPhysics(),
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 4,
-                        childAspectRatio: aspectRatio,
-                      ),
-                      itemCount: 16,
+                    return SizedBox(
+                      width: constraints.maxWidth,
+                      height:
+                          tileHeight *
+                          gridSize, // Chốt cứng không gian cho Stack
+                      child: Stack(
+                        clipBehavior: Clip.none,
+                        // Dùng vòng lặp map thay vì GridView.builder
+                        children: board.map((piece) {
+                          // Lấy vị trí thực tế trên lưới của mảnh ghép
+                          int index = piece.currentIndex;
 
-                      itemBuilder: (context, index) {
-                        PuzzlePiece piece = board[index];
-                        bool isPartOfDraggingGroup =
-                            draggingGroupId == piece.groupId;
+                          bool isPartOfDraggingGroup =
+                              draggingGroupId == piece.groupId;
+                          bool isDealt =
+                              _gamePhase != GamePhase.dealing ||
+                              index < _dealIndex;
 
-                        bool isDealt =
-                            _gamePhase != GamePhase.dealing ||
-                            index < _dealIndex;
-
-                        // Khung nền (Bóng mờ)
-                        Widget baseBox = Container(
-                          decoration: BoxDecoration(
-                            color: const Color.fromARGB(0, 0, 0, 0),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                        );
-
-                        // Chưa đến lượt chia -> hiển thị bóng hoặc Cỗ bài ở góc dưới cùng
-                        if (!isDealt) {
-                          if (index == 15) return const CardBackWidget();
-                          return baseBox;
-                        }
-
-                        // 1. WIDGET LÕI
-                        Widget tileContent = PuzzleTileWidget(
-                          key: ValueKey(piece.id),
-                          piece: piece,
-                          board: board,
-                          image: puzzleImage,
-                        );
-
-                        // 2. BỌC ANIMATION CO GIÃN (PULSE)
-                        tileContent = GroupPulseWrapper(
-                          trigger: pulsingGroups.contains(piece.groupId),
-                          piece: piece,
-                          board: board,
-                          gridSize: gridSize,
-                          child: tileContent,
-                        );
-
-                        // 3. BỌC ANIMATION LẬT (FLIP)
-                        if (!_hasPlayedIntroFlip) {
-                          final double flipTarget =
-                              (_gamePhase == GamePhase.flipping) ? 0.0 : pi;
-
-                          tileContent = TweenAnimationBuilder<double>(
-                            key: ValueKey('intro_flip_${piece.id}'),
-                            tween: Tween(begin: pi, end: flipTarget),
-                            duration: const Duration(milliseconds: 600),
-                            curve: Curves.easeInOut,
-                            builder: (context, val, child) {
-                              final bool isFront = val < pi / 2;
-
-                              return Transform(
-                                alignment: Alignment.center,
-                                transform: Matrix4.identity()
-                                  ..setEntry(3, 2, 0.001)
-                                  ..rotateY(val),
-                                child: isFront
-                                    ? child
-                                    : Transform(
-                                        alignment: Alignment.center,
-                                        transform: Matrix4.identity()
-                                          ..rotateY(pi),
-                                        child: const CardBackWidget(),
-                                      ),
-                              );
-                            },
-                            child: tileContent,
+                          Widget baseBox = Container(
+                            decoration: BoxDecoration(
+                              color: Colors.transparent,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
                           );
-                        }
 
-                        // 4. BỌC ANIMATION BAY VÀO (DEALING)
-                        if (_gamePhase == GamePhase.dealing &&
-                            index < _dealIndex) {
-                          // Tính khoảng cách từ góc dưới cùng phải (index 15) tới vị trí hiện tại
-                          int dx = 3 - (index % 4);
-                          int dy = 3 - (index ~/ 4);
+                          Widget currentWidget;
 
-                          tileContent = TweenAnimationBuilder<double>(
-                            key: ValueKey('deal_${piece.id}'),
-                            tween: Tween(begin: 1.0, end: 0.0),
-                            duration: const Duration(milliseconds: 300),
-                            curve: Curves.easeOutCubic,
-                            builder: (context, val, child) {
-                              return Transform.translate(
-                                offset: Offset(
-                                  val * dx * tileSize,
-                                  val * dy * tileSize,
-                                ),
-                                child: child,
-                              );
-                            },
-                            child: tileContent,
-                          );
-                        }
-
-                        // Trả về DropZone
-                        return DragTarget<int>(
-                          onWillAcceptWithDetails: (details) =>
-                              _gamePhase == GamePhase.playing,
-                          onAcceptWithDetails: (details) =>
-                              _onDrop(details.data, index),
-                          builder: (context, candidateData, rejectedData) {
-                            return Draggable<int>(
-                              maxSimultaneousDrags:
-                                  _gamePhase == GamePhase.playing
-                                  ? 1
-                                  : 0, // Cấm kéo khi đang chạy hiệu ứng
-                              data: index,
-                              onDragStarted: () => setState(
-                                () => draggingGroupId = piece.groupId,
-                              ),
-                              onDragEnd: (details) =>
-                                  setState(() => draggingGroupId = null),
-                              feedback: _buildGroupFeedback(piece, tileSize),
-                              child: Opacity(
-                                opacity: isPartOfDraggingGroup ? 0.3 : 1.0,
-                                child: tileContent,
-                              ),
+                          // Logic chờ chia bài giữ nguyên
+                          if (!isDealt) {
+                            if (index == 15) {
+                              currentWidget = const CardBackWidget();
+                            } else {
+                              currentWidget = baseBox;
+                            }
+                          } else {
+                            // [1. LÕI WIDGET]
+                            Widget tileContent = PuzzleTileWidget(
+                              key: ValueKey('tile_${piece.id}'),
+                              piece: piece,
+                              board: board,
+                              image: puzzleImage,
                             );
-                          },
-                        );
-                      },
+
+                            // [2. BỌC PULSE]
+                            tileContent = GroupPulseWrapper(
+                              trigger: pulsingGroups.contains(piece.groupId),
+                              piece: piece,
+                              board: board,
+                              gridSize: gridSize,
+                              child: tileContent,
+                            );
+
+                            // [3. BỌC FLIP]
+                            if (!_hasPlayedIntroFlip) {
+                              final double flipTarget =
+                                  (_gamePhase == GamePhase.flipping) ? 0.0 : pi;
+                              tileContent = TweenAnimationBuilder<double>(
+                                key: ValueKey('intro_flip_${piece.id}'),
+                                tween: Tween(begin: pi, end: flipTarget),
+                                duration: const Duration(milliseconds: 600),
+                                curve: Curves.easeInOut,
+                                builder: (context, val, child) {
+                                  final bool isFront = val < pi / 2;
+                                  return Transform(
+                                    alignment: Alignment.center,
+                                    transform: Matrix4.identity()
+                                      ..setEntry(3, 2, 0.001)
+                                      ..rotateY(val),
+                                    child: isFront
+                                        ? child
+                                        : Transform(
+                                            alignment: Alignment.center,
+                                            transform: Matrix4.identity()
+                                              ..rotateY(pi),
+                                            child: const CardBackWidget(),
+                                          ),
+                                  );
+                                },
+                                child: tileContent,
+                              );
+                            }
+
+                            // [4. BỌC DEALING]
+                            if (_gamePhase == GamePhase.dealing &&
+                                index < _dealIndex) {
+                              int dx = 3 - (index % 4);
+                              int dy = 3 - (index ~/ 4);
+                              tileContent = TweenAnimationBuilder<double>(
+                                key: ValueKey('deal_${piece.id}'),
+                                tween: Tween(begin: 1.0, end: 0.0),
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.easeOutCubic,
+                                builder: (context, val, child) {
+                                  return Transform.translate(
+                                    offset: Offset(
+                                      val *
+                                          dx *
+                                          tileWidth, // Chú ý: dùng tileWidth/tileHeight thay vì tileSize
+                                      val * dy * tileHeight,
+                                    ),
+                                    child: child,
+                                  );
+                                },
+                                child: tileContent,
+                              );
+                            }
+
+                            // [5. BỌC KÉO THẢ (DragTarget & Draggable)]
+                            currentWidget = DragTarget<int>(
+                              onWillAcceptWithDetails: (details) =>
+                                  _gamePhase == GamePhase.playing,
+                              onAcceptWithDetails: (details) =>
+                                  _onDrop(details.data, index),
+                              builder: (context, candidateData, rejectedData) {
+                                return Draggable<int>(
+                                  maxSimultaneousDrags:
+                                      _gamePhase == GamePhase.playing ? 1 : 0,
+                                  data: index,
+                                  onDragStarted: () => setState(
+                                    () => draggingGroupId = piece.groupId,
+                                  ),
+                                  onDragEnd: (details) =>
+                                      setState(() => draggingGroupId = null),
+                                  feedback: _buildGroupFeedback(
+                                    piece,
+                                    tileWidth,
+                                  ),
+                                  child: Opacity(
+                                    opacity: isPartOfDraggingGroup ? 0.3 : 1.0,
+                                    child: tileContent,
+                                  ),
+                                );
+                              },
+                            );
+                          }
+
+                          // ---------------------------------------------------------
+                          // [CHÌA KHÓA CỦA ANIMATION SWAP]: AnimatedPositioned
+                          // ---------------------------------------------------------
+                          return AnimatedPositioned(
+                            // Key CỰC KỲ QUAN TRỌNG.
+                            // Nhờ ValueKey(piece.id), Flutter biết mảnh nào là mảnh nào dù mảng board có xáo trộn.
+                            key: ValueKey(piece.id),
+                            duration: const Duration(
+                              milliseconds: 500,
+                            ), // Tốc độ bay lướt
+                            curve: Curves
+                                .easeOutCubic, // Gia tốc: bay nhanh ở đầu, phanh mượt ở cuối
+                            // Tọa độ tính toán vị trí "đích đến" hiện tại của mảnh
+                            left: (index % gridSize) * tileWidth,
+                            top: (index ~/ gridSize) * tileHeight,
+                            width: tileWidth,
+                            height: tileHeight,
+                            child: currentWidget,
+                          );
+                        }).toList(),
+                      ),
                     );
                   },
                 ),
