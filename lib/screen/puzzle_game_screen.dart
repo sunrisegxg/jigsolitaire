@@ -211,8 +211,13 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       }
 
       if (mergedGroupIds.isNotEmpty) {
-        pulsingGroups.addAll(mergedGroupIds);
-
+        Future.delayed(const Duration(milliseconds: 450), () {
+          if (mounted) {
+            setState(() {
+              pulsingGroups.addAll(mergedGroupIds);
+            });
+          }
+        });
         Future.delayed(const Duration(milliseconds: 400), () {
           if (mounted) {
             setState(() {
@@ -290,7 +295,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     // 1. TÍNH TOÁN KÍCH THƯỚC CHI TIẾT
-                    // Vì không dùng GridView nữa, ta phải tự tính width và height dựa trên aspectRatio
+                    // tự tính width và height dựa trên aspectRatio
                     double tileWidth = constraints.maxWidth / gridSize;
                     double tileHeight = tileWidth / aspectRatio;
 
@@ -438,7 +443,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                             // Nhờ ValueKey(piece.id), Flutter biết mảnh nào là mảnh nào dù mảng board có xáo trộn.
                             key: ValueKey(piece.id),
                             duration: const Duration(
-                              milliseconds: 500,
+                              milliseconds: 450,
                             ), // Tốc độ bay lướt
                             curve: Curves
                                 .easeOutCubic, // Gia tốc: bay nhanh ở đầu, phanh mượt ở cuối
