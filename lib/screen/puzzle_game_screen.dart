@@ -22,6 +22,8 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   int? draggingGroupId;
   double aspectRatio = 0.7;
 
+  final bool _isProcessingDrop = false;
+
   // State Animations
   GamePhase _gamePhase = GamePhase.dealing;
   int _dealIndex = 0;
@@ -192,60 +194,54 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       board = nextBoard;
 
       // để delay cho updategroups giúp tránh bị merge border trước khi mảnh bay vào
-      Future.delayed(const Duration(milliseconds: 450), () {
-        if (mounted) {
-          setState(() {
-            _updateGroups();
-          });
-        }
-      });
+      // Gọi một khối hàm async (vô danh) để xử lý chuỗi animation tuần tự
+      () async {
+        // 1. Chờ mảnh ghép bay vào vị trí (350ms bay + 100ms an toàn)
+        await Future.delayed(const Duration(milliseconds: 450));
+        if (!mounted) return;
 
-      //để delay chờ updategroups
-      Future.delayed(const Duration(milliseconds: 450), () {
-        if (mounted) {
-          setState(() {
-            // KIỂM TRA MERGE (GỘP CỤM MỚI)
-            Map<int, List<PuzzlePiece>> newGroups = {};
-            for (final p in board) {
-              newGroups.putIfAbsent(p.groupId, () => []).add(p);
+        // 2. Cập nhật nhóm và kiểm tra merge cùng 1 lúc
+        Set<int> mergedGroupIds = {};
+
+        setState(() {
+          _updateGroups();
+
+          Map<int, List<PuzzlePiece>> newGroups = {};
+          for (final p in board) {
+            newGroups.putIfAbsent(p.groupId, () => []).add(p);
+          }
+
+          for (final entry in newGroups.entries) {
+            final pieces = entry.value;
+            final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
+            if (oldGroupIds.length > 1) {
+              mergedGroupIds.add(entry.key);
             }
+          }
+        });
 
-            final Set<int> mergedGroupIds = {};
+        // Nếu không có merge mới, kết thúc tại đây
+        if (mergedGroupIds.isEmpty) return;
 
-            for (final entry in newGroups.entries) {
-              final pieces = entry.value;
+        setState(() {
+          pulsingGroups.addAll(mergedGroupIds);
+        });
 
-              final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
+        // Chờ animation pulse hoàn thành
+        await Future.delayed(const Duration(milliseconds: 400));
+        if (!mounted) return;
 
-              if (oldGroupIds.length > 1) {
-                mergedGroupIds.add(entry.key);
-              }
-            }
-
-            if (mergedGroupIds.isNotEmpty) {
-              //để delay này giúp tránh bị pulse ngay khi vừa drop mảnh vào mà chỉ pulse sau khi mảnh bay vào và đã ổn định vị trí mới
-              Future.delayed(const Duration(milliseconds: 50), () {
-                if (mounted) {
-                  setState(() {});
-                }
-              });
-              pulsingGroups.addAll(mergedGroupIds);
-
-              Future.delayed(const Duration(milliseconds: 400), () {
-                if (mounted) {
-                  setState(() {
-                    pulsingGroups.removeAll(mergedGroupIds);
-                  });
-                }
-              });
-            }
-          });
-        }
-      });
+        setState(() {
+          pulsingGroups.removeAll(mergedGroupIds);
+        });
+      }();
     });
   }
 
   Widget _buildGroupFeedback(PuzzlePiece draggedPiece, double tileSize) {
+    double tileWidth = tileSize;
+    double tileHeight = tileSize / aspectRatio;
+
     List<PuzzlePiece> groupPieces = board
         .where((p) => p.groupId == draggedPiece.groupId)
         .toList();
@@ -253,8 +249,8 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
     return Material(
       color: Colors.transparent,
       child: SizedBox(
-        width: tileSize,
-        height: tileSize,
+        width: tileWidth,
+        height: tileHeight,
         child: Stack(
           clipBehavior: Clip.none,
           children: groupPieces.map((p) {
@@ -268,8 +264,8 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
             return Positioned(
               left: dx * tileSize,
               top: dy * tileSize,
-              width: tileSize,
-              height: tileSize,
+              width: tileWidth,
+              height: tileHeight,
               child: PuzzleTileWidget(
                 key: ValueKey('feedback_${p.id}'),
                 piece: p,
@@ -424,11 +420,20 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
                             // [5. BỌC KÉO THẢ (DragTarget & Draggable)]
                             currentWidget = DragTarget<int>(
+                              // 1. Chặn việc nhận mảnh (thả tay) nếu đang dropprocessing
                               onWillAcceptWithDetails: (details) =>
-                                  _gamePhase == GamePhase.playing,
+                                  _gamePhase == GamePhase.playing &&
+                                  !_isProcessingDrop,
                               onAcceptWithDetails: (details) =>
                                   _onDrop(details.data, index),
                               builder: (context, candidateData, rejectedData) {
+                                // 2. TẠO ĐIỀU KIỆN CHẶN NHIỀU NGÓN TAY
+                                bool canDrag =
+                                    _gamePhase == GamePhase.playing &&
+                                    !_isProcessingDrop &&
+                                    (draggingGroupId == null ||
+                                        draggingGroupId == piece.groupId);
+
                                 return Draggable<int>(
                                   maxSimultaneousDrags:
                                       _gamePhase == GamePhase.playing ? 1 : 0,
