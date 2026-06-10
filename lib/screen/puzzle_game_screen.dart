@@ -22,7 +22,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   int? draggingGroupId;
   double aspectRatio = 0.7;
 
-  final bool _isProcessingDrop = false;
+  bool _isProcessingDrop = false;
 
   // State Animations
   GamePhase _gamePhase = GamePhase.dealing;
@@ -131,6 +131,9 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   void _onDrop(int dragIndex, int dropIndex) {
     if (dragIndex == dropIndex) return;
 
+    // THÊM LỚP BẢO VỆ ĐẦU VÀO
+    if (_isProcessingDrop) return;
+
     PuzzlePiece draggedPiece = board[dragIndex];
     int dragX = dragIndex % gridSize;
     int dragY = dragIndex ~/ gridSize;
@@ -174,6 +177,9 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
         .toList();
 
     setState(() {
+      //Khóa thao tác ngay khi bắt đầu đổi vị trí để tránh lỗi khi người chơi cố gắng kéo thêm mảnh khác trong lúc animation đang chạy
+      _isProcessingDrop = true;
+
       List<PuzzlePiece> nextBoard = List.from(board);
 
       for (var p in groupPieces) {
@@ -196,44 +202,56 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       // để delay cho updategroups giúp tránh bị merge border trước khi mảnh bay vào
       // Gọi một khối hàm async (vô danh) để xử lý chuỗi animation tuần tự
       () async {
-        // 1. Chờ mảnh ghép bay vào vị trí (350ms bay + 100ms an toàn)
-        await Future.delayed(const Duration(milliseconds: 450));
-        if (!mounted) return;
+        try {
+          // 1. Đợi bay vào vị trí
+          await Future.delayed(const Duration(milliseconds: 450));
+          if (!mounted) return;
 
-        // 2. Cập nhật nhóm và kiểm tra merge cùng 1 lúc
-        Set<int> mergedGroupIds = {};
+          // 2. Tính toán gộp cụm (Merge)
+          Set<int> mergedGroupIds = {};
+          setState(() {
+            _updateGroups();
 
-        setState(() {
-          _updateGroups();
-
-          Map<int, List<PuzzlePiece>> newGroups = {};
-          for (final p in board) {
-            newGroups.putIfAbsent(p.groupId, () => []).add(p);
-          }
-
-          for (final entry in newGroups.entries) {
-            final pieces = entry.value;
-            final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
-            if (oldGroupIds.length > 1) {
-              mergedGroupIds.add(entry.key);
+            Map<int, List<PuzzlePiece>> newGroups = {};
+            for (final p in board) {
+              newGroups.putIfAbsent(p.groupId, () => []).add(p);
             }
+
+            for (final entry in newGroups.entries) {
+              final pieces = entry.value;
+              final oldGroupIds = pieces.map((p) => oldGroupMap[p.id]!).toSet();
+              if (oldGroupIds.length > 1) {
+                mergedGroupIds.add(entry.key);
+              }
+            }
+          });
+
+          if (mergedGroupIds.isEmpty) return; // Không có merge thì thoát sớm
+
+          // 3. Đợi ổn định rồi bơm Pulse
+          await Future.delayed(const Duration(milliseconds: 50));
+          if (!mounted) return;
+
+          setState(() {
+            pulsingGroups.addAll(mergedGroupIds);
+          });
+
+          // 4. Đợi Pulse chạy xong
+          await Future.delayed(const Duration(milliseconds: 400));
+          if (!mounted) return;
+
+          setState(() {
+            pulsingGroups.removeAll(mergedGroupIds);
+          });
+        } finally {
+          //tắt drop processing khi kết thúc
+          // Dù code có lỗi giữa chừng, nhánh finally vẫn sẽ chạy để mở khóa game
+          if (mounted) {
+            setState(() {
+              _isProcessingDrop = false;
+            });
           }
-        });
-
-        // Nếu không có merge mới, kết thúc tại đây
-        if (mergedGroupIds.isEmpty) return;
-
-        setState(() {
-          pulsingGroups.addAll(mergedGroupIds);
-        });
-
-        // Chờ animation pulse hoàn thành
-        await Future.delayed(const Duration(milliseconds: 400));
-        if (!mounted) return;
-
-        setState(() {
-          pulsingGroups.removeAll(mergedGroupIds);
-        });
+        }
       }();
     });
   }
@@ -435,8 +453,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                                         draggingGroupId == piece.groupId);
 
                                 return Draggable<int>(
-                                  maxSimultaneousDrags:
-                                      _gamePhase == GamePhase.playing ? 1 : 0,
+                                  maxSimultaneousDrags: canDrag ? 1 : 0,
                                   data: index,
                                   onDragStarted: () => setState(
                                     () => draggingGroupId = piece.groupId,
