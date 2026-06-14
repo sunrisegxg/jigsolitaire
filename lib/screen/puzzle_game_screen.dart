@@ -280,8 +280,8 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                 (draggedPiece.currentIndex ~/ gridSize);
 
             return Positioned(
-              left: dx * tileSize,
-              top: dy * tileSize,
+              left: dx * tileWidth,
+              top: dy * tileHeight,
               width: tileWidth,
               height: tileHeight,
               child: PuzzleTileWidget(
@@ -419,7 +419,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                               tileContent = TweenAnimationBuilder<double>(
                                 key: ValueKey('deal_${piece.id}'),
                                 tween: Tween(begin: 1.0, end: 0.0),
-                                duration: const Duration(milliseconds: 300),
+                                duration: const Duration(milliseconds: 400),
                                 curve: Curves.easeOutCubic,
                                 builder: (context, val, child) {
                                   return Transform.translate(
@@ -474,11 +474,10 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                           }
 
                           // ---------------------------------------------------------
-                          // [CHÌA KHÓA CỦA ANIMATION SWAP]: AnimatedPositioned
+                          // [ANIMATION SWAP]: AnimatedPositioned
                           // ---------------------------------------------------------
                           return AnimatedPositioned(
-                            // Key CỰC KỲ QUAN TRỌNG.
-                            // Nhờ ValueKey(piece.id), Flutter biết mảnh nào là mảnh nào dù mảng board có xáo trộn.
+                            // ValueKey(piece.id) để biết mảnh nào là mảnh nào dù mảng board có xáo trộn.
                             key: ValueKey(piece.id),
                             duration: const Duration(
                               milliseconds: 450,
