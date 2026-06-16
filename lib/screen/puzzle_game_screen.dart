@@ -28,7 +28,17 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   GamePhase _gamePhase = GamePhase.dealing;
   int _dealIndex = 0;
   Set<int> pulsingGroups = {}; // Lưu ID các cụm đang có hiệu ứng co giãn
-  bool _hasPlayedIntroFlip = false;
+  bool _hasPlayedIntroFlip =
+      false; // biến cờ để đảm bảo hiệu ứng lật bài chỉ chạy 1 lần duy nhất ở đầu game
+
+  // Khóa kiểm tra xem lượt kéo này có hoán đổi thành công hay không
+  bool _didSwap = false;
+
+  // Lưu trữ khoảng cách lệch (Delta) của từng mảnh để bay về chỗ cũ
+  final Map<int, Offset> _snapBackOffsets = {};
+
+  // Key để xác định tọa độ gốc của vùng chứa Stack
+  final GlobalKey _stackKey = GlobalKey();
 
   final Image puzzleImage = Image.asset(
     'assets/puzzle_image.jpg',
@@ -133,6 +143,9 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
     // THÊM LỚP BẢO VỆ ĐẦU VÀO
     if (_isProcessingDrop) return;
+
+    //đánh dấu đã có thao tác thay đổi vị trí
+    _didSwap = true;
 
     PuzzlePiece draggedPiece = board[dragIndex];
     int dragX = dragIndex % gridSize;
@@ -335,6 +348,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                           tileHeight *
                           gridSize, // Chốt cứng không gian cho Stack
                       child: Stack(
+                        key: _stackKey,
                         clipBehavior: Clip.none,
                         // Dùng vòng lặp map thay vì GridView.builder
                         children: board.map((piece) {
@@ -356,7 +370,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
                           Widget currentWidget;
 
-                          // Logic chờ chia bài 
+                          // Logic chờ chia bài
                           if (!isDealt) {
                             if (index == 15) {
                               currentWidget = const CardBackWidget();
@@ -364,13 +378,43 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                               currentWidget = baseBox;
                             }
                           } else {
-                            // [1. LÕI WIDGET]
+                            // [0. LÕI WIDGET]
                             Widget tileContent = PuzzleTileWidget(
                               key: ValueKey('tile_${piece.id}'),
                               piece: piece,
                               board: board,
                               image: puzzleImage,
                             );
+
+                            // [1. BỌC SNAP BACK - HIỆU ỨNG BAY VỀ CHỖ CŨ KHI THẢ TẠI CHỖ / RA NGOÀI]
+                            final snapOffset = _snapBackOffsets[piece.id];
+                            if (snapOffset != null) {
+                              tileContent = TweenAnimationBuilder<Offset>(
+                                key: ValueKey('snap_back_${piece.id}'),
+                                tween: Tween<Offset>(
+                                  begin: snapOffset,
+                                  end: Offset.zero,
+                                ),
+                                duration: const Duration(
+                                  milliseconds: 500,
+                                ), // Tốc độ bay về
+                                curve: Curves
+                                    .easeOutCubic, // Phanh mượt khi về đích
+                                onEnd: () {
+                                  // Bay về đích xong thì xóa offset đi để trả lại vị trí lưới tĩnh
+                                  setState(() {
+                                    _snapBackOffsets.remove(piece.id);
+                                  });
+                                },
+                                builder: (context, offset, child) {
+                                  return Transform.translate(
+                                    offset: offset,
+                                    child: child,
+                                  );
+                                },
+                                child: tileContent,
+                              );
+                            }
 
                             // [2. BỌC PULSE]
                             tileContent = GroupPulseWrapper(
@@ -455,11 +499,51 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                                 return Draggable<int>(
                                   maxSimultaneousDrags: canDrag ? 1 : 0,
                                   data: index,
-                                  onDragStarted: () => setState(
-                                    () => draggingGroupId = piece.groupId,
-                                  ),
-                                  onDragEnd: (details) =>
-                                      setState(() => draggingGroupId = null),
+                                  onDragStarted: () {
+                                    _didSwap =
+                                        false; //RESET TRẠNG THÁI KHI BẮT ĐẦU KÉO LƯỢT MỚI
+                                    setState(() {
+                                      draggingGroupId = piece.groupId;
+                                    });
+                                  },
+                                  onDragEnd: (details) {
+                                    setState(() {
+                                      draggingGroupId = null;
+                                    });
+
+                                    // 3. XỬ LÝ KHI THẢ TAY MÀ KHÔNG THÀNH CÔNG (THẢ TẠI CHỖ HOẶC RA NGOÀI)
+                                    if (!_didSwap) {
+                                      final renderBox =
+                                          _stackKey.currentContext
+                                                  ?.findRenderObject()
+                                              as RenderBox?;
+                                      if (renderBox != null) {
+                                        // Tính tọa độ cục feedback ảo lúc thả tay so với gốc của Stack
+                                        final localDropPos = renderBox
+                                            .globalToLocal(details.offset);
+                                        // Tính tọa độ chuẩn của ô lưới đáng lẽ mảnh phải nằm ở đó
+                                        final slotX =
+                                            (piece.currentIndex % gridSize) *
+                                            tileWidth;
+                                        final slotY =
+                                            (piece.currentIndex ~/ gridSize) *
+                                            tileHeight;
+                                        // Khoảng cách lệch chính là hiệu của 2 tọa độ trên
+                                        final deltaOffset =
+                                            localDropPos - Offset(slotX, slotY);
+
+                                        setState(() {
+                                          // Áp dụng khoảng lệch cho CẢ CỤM đang kéo để tụi nó cùng bay về một lúc
+                                          for (final p in board) {
+                                            if (p.groupId == piece.groupId) {
+                                              _snapBackOffsets[p.id] =
+                                                  deltaOffset;
+                                            }
+                                          }
+                                        });
+                                      }
+                                    }
+                                  },
                                   feedback: _buildGroupFeedback(
                                     piece,
                                     tileWidth,
