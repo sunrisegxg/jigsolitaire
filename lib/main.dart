@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:test/only_one_point_widget.dart';
 import 'package:test/screen/puzzle_game_screen.dart';
 
 void main() {
-  runApp(const PuzzleApp());
+  runApp(OnlyOnePointerRecognizerWidget(child: const PuzzleApp()));
 }
 
 class PuzzleApp extends StatelessWidget {

@@ -356,7 +356,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
                           Widget currentWidget;
 
-                          // Logic chờ chia bài giữ nguyên
+                          // Logic chờ chia bài 
                           if (!isDealt) {
                             if (index == 15) {
                               currentWidget = const CardBackWidget();
