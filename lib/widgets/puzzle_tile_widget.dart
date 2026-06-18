@@ -6,12 +6,14 @@ class PuzzleTileWidget extends StatelessWidget {
   final PuzzlePiece piece;
   final List<PuzzlePiece> board;
   final Image image;
+  final int gridSize;
 
   const PuzzleTileWidget({
     super.key,
     required this.piece,
     required this.board,
     required this.image,
+    required this.gridSize,
   });
 
   @override
@@ -58,8 +60,8 @@ class PuzzleTileWidget extends StatelessWidget {
               Positioned(
                 left: -piece.origX * w,
                 top: -piece.origY * h,
-                width: w * 4,
-                height: h * 4,
+                width: w * gridSize,
+                height: h * gridSize,
                 child: SizedBox.expand(child: image),
               ),
               Positioned(
@@ -86,7 +88,10 @@ class PuzzleTileWidget extends StatelessWidget {
                 right: sameGroupRight ? -borderWidth / 2 : 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: borderWidth / 2),
+                    border: Border.all(
+                      color: Colors.black,
+                      width: borderWidth / 2,
+                    ),
                     borderRadius: BorderRadius.only(
                       topLeft: tl,
                       topRight: tr,
@@ -104,10 +109,15 @@ class PuzzleTileWidget extends StatelessWidget {
   }
 
   bool _checkSameGroup(int dx, int dy) {
-    int targetX = (piece.currentIndex % 4) + dx;
-    int targetY = (piece.currentIndex ~/ 4) + dy;
-    if (targetX < 0 || targetX > 3 || targetY < 0 || targetY > 3) return false;
-    int targetIndex = targetY * 4 + targetX;
+    int targetX = (piece.currentIndex % gridSize) + dx;
+    int targetY = (piece.currentIndex ~/ gridSize) + dy;
+    if (targetX < 0 ||
+        targetX > (gridSize - 1) ||
+        targetY < 0 ||
+        targetY > (gridSize - 1)) {
+      return false;
+    }
+    int targetIndex = targetY * gridSize + targetX;
     return board[targetIndex].groupId == piece.groupId;
   }
 }

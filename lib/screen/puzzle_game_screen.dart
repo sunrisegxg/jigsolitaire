@@ -18,7 +18,7 @@ class PuzzleGameScreen extends StatefulWidget {
 class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   List<PuzzlePiece> board = [];
   // final int gridSize = 4;
-  final int gridSize = 4;
+  final int gridSize = 8;
   int? draggingGroupId;
   double aspectRatio = 0.7;
 
@@ -53,8 +53,13 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   }
 
   void _initBoard() {
-    board = List.generate(16, (index) {
-      return PuzzlePiece(id: index, currentIndex: index, groupId: index);
+    board = List.generate(gridSize * gridSize, (index) {
+      return PuzzlePiece(
+        id: index,
+        currentIndex: index,
+        groupId: index,
+        gridSize: gridSize,
+      );
     });
 
     board.shuffle(Random());
@@ -74,7 +79,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       _hasPlayedIntroFlip = false;
     });
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < gridSize * gridSize; i++) {
       await Future.delayed(const Duration(milliseconds: 70));
       if (mounted) {
         setState(() => _dealIndex = i + 1);
@@ -111,7 +116,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
   }
 
   void _updateGroups() {
-    List<int> parent = List.generate(16, (index) => index);
+    List<int> parent = List.generate(gridSize * gridSize, (index) => index);
 
     for (int y = 0; y < gridSize; y++) {
       for (int x = 0; x < gridSize; x++) {
@@ -133,7 +138,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
       }
     }
 
-    for (int i = 0; i < 16; i++) {
+    for (int i = 0; i < gridSize * gridSize; i++) {
       board[i].groupId = _find(parent, board[i].id);
     }
   }
@@ -143,9 +148,6 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
     // THÊM LỚP BẢO VỆ ĐẦU VÀO
     if (_isProcessingDrop) return;
-
-    //đánh dấu đã có thao tác thay đổi vị trí
-    _didSwap = true;
 
     PuzzlePiece draggedPiece = board[dragIndex];
     int dragX = dragIndex % gridSize;
@@ -206,11 +208,13 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
         nextBoard[gaps[i]] = displacedPieces[i];
       }
 
-      for (int i = 0; i < 16; i++) {
+      for (int i = 0; i < gridSize * gridSize; i++) {
         nextBoard[i].currentIndex = i;
       }
 
       board = nextBoard;
+      //đánh dấu đã có thao tác thay đổi vị trí
+      _didSwap = true;
 
       // để delay cho updategroups giúp tránh bị merge border trước khi mảnh bay vào
       // Gọi một khối hàm async (vô danh) để xử lý chuỗi animation tuần tự
@@ -302,6 +306,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                 piece: p,
                 board: board,
                 image: puzzleImage,
+                gridSize: gridSize,
               ),
             );
           }).toList(),
@@ -384,6 +389,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                               piece: piece,
                               board: board,
                               image: puzzleImage,
+                              gridSize: gridSize,
                             );
 
                             // [1. BỌC SNAP BACK - HIỆU ỨNG BAY VỀ CHỖ CŨ KHI THẢ TẠI CHỖ / RA NGOÀI]
@@ -443,6 +449,8 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                                       ..rotateY(val),
                                     child: isFront
                                         ? child
+                                        // Xoay CardBackWidget thêm 180 độ để mặt sau hiển thị đúng chiều / soi gương
+                                        // khi widget cha đang bị rotateY trong animation lật bài.
                                         : Transform(
                                             alignment: Alignment.center,
                                             transform: Matrix4.identity()
@@ -458,12 +466,12 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
                             // [4. BỌC DEALING]
                             if (_gamePhase == GamePhase.dealing &&
                                 index < _dealIndex) {
-                              int dx = 3 - (index % 4);
-                              int dy = 3 - (index ~/ 4);
+                              int dx = (gridSize - 1) - (index % gridSize);
+                              int dy = (gridSize - 1) - (index ~/ gridSize);
                               tileContent = TweenAnimationBuilder<double>(
                                 key: ValueKey('deal_${piece.id}'),
                                 tween: Tween(begin: 1.0, end: 0.0),
-                                duration: const Duration(milliseconds: 400),
+                                duration: const Duration(milliseconds: 500),
                                 curve: Curves.easeOutCubic,
                                 builder: (context, val, child) {
                                   return Transform.translate(
@@ -482,7 +490,7 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
                             // [5. BỌC KÉO THẢ (DragTarget & Draggable)]
                             currentWidget = DragTarget<int>(
-                              // 1. Chặn việc nhận mảnh (thả tay) nếu đang dropprocessing
+                              // 1. Chặn việc drag mảnh khác nếu đang thực hiện dropprocessing animation
                               onWillAcceptWithDetails: (details) =>
                                   _gamePhase == GamePhase.playing &&
                                   !_isProcessingDrop,
@@ -513,6 +521,14 @@ class _PuzzleGameScreenState extends State<PuzzleGameScreen> {
 
                                     // 3. XỬ LÝ KHI THẢ TAY MÀ KHÔNG THÀNH CÔNG (THẢ TẠI CHỖ HOẶC RA NGOÀI)
                                     if (!_didSwap) {
+                                      // globalToLocal:
+                                      // Màn hình -> Stack
+                                      //
+                                      // details.offset      : tọa độ theo màn hình
+                                      // localDropPos        : tọa độ theo Stack
+                                      // Offset(slotX,slotY) : tọa độ theo Stack
+                                      //
+                                      // Cần đổi cùng hệ tọa độ trước khi tính delta.
                                       final renderBox =
                                           _stackKey.currentContext
                                                   ?.findRenderObject()
