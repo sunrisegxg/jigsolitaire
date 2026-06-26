@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test/model/puzzle_piece.dart';
 
-// --- WIDGET HIỆU ỨNG NHỊP TIM CHO CỤM MẢNH GHÉP VỪA GỘP (PULSE GROUP) ---
+import '../../domain/entities/puzzle_piece.dart';
+
 class GroupPulseWrapper extends StatefulWidget {
   final Widget child;
   final bool trigger;
@@ -24,12 +24,13 @@ class GroupPulseWrapper extends StatefulWidget {
 
 class _GroupPulseWrapperState extends State<GroupPulseWrapper>
     with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _scale;
+  late final AnimationController _controller;
+  late final Animation<double> _scale;
 
   @override
   void initState() {
     super.initState();
+
     _controller = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 300),
@@ -42,10 +43,11 @@ class _GroupPulseWrapperState extends State<GroupPulseWrapper>
   }
 
   @override
-  void didUpdateWidget(covariant GroupPulseWrapper oldWidget)  {
+  void didUpdateWidget(covariant GroupPulseWrapper oldWidget) {
     super.didUpdateWidget(oldWidget);
+
     if (widget.trigger && !oldWidget.trigger) {
-      _controller.forward(from: 0.0);
+      _controller.forward(from: 0);
     }
   }
 
@@ -58,44 +60,39 @@ class _GroupPulseWrapperState extends State<GroupPulseWrapper>
   @override
   Widget build(BuildContext context) {
     final groupPieces = widget.board
-        .where((p) => p.groupId == widget.piece.groupId)
+        .where((piece) => piece.groupId == widget.piece.groupId)
         .toList();
 
-    final xs = groupPieces
-        .map((p) => p.currentIndex % widget.gridSize)
-        .toList();
-    final ys = groupPieces
-        .map((p) => p.currentIndex ~/ widget.gridSize)
-        .toList();
+    final xs = groupPieces.map((piece) => piece.currentIndex % widget.gridSize).toList();
+    final ys = groupPieces.map((piece) => piece.currentIndex ~/ widget.gridSize).toList();
 
     final minX = xs.reduce((a, b) => a < b ? a : b).toDouble();
     final maxX = xs.reduce((a, b) => a > b ? a : b).toDouble();
     final minY = ys.reduce((a, b) => a < b ? a : b).toDouble();
     final maxY = ys.reduce((a, b) => a > b ? a : b).toDouble();
 
-    final centerX = (minX + maxX) / 2.0;
-    final centerY = (minY + maxY) / 2.0;
+    final centerX = (minX + maxX) / 2;
+    final centerY = (minY + maxY) / 2;
 
     final pieceX = (widget.piece.currentIndex % widget.gridSize).toDouble();
     final pieceY = (widget.piece.currentIndex ~/ widget.gridSize).toDouble();
 
     return LayoutBuilder(
       builder: (context, constraints) {
-        final tileW = constraints.maxWidth;
-        final tileH = constraints.maxHeight;
+        final tileWidth = constraints.maxWidth;
+        final tileHeight = constraints.maxHeight;
 
         return AnimatedBuilder(
           animation: _scale,
           child: widget.child,
           builder: (context, child) {
-            final s = _scale.value;
-
-            final dx = (pieceX - centerX) * (s - 1) * tileW;
-            final dy = (pieceY - centerY) * (s - 1) * tileH;
+            final scale = _scale.value;
+            final dx = (pieceX - centerX) * (scale - 1) * tileWidth;
+            final dy = (pieceY - centerY) * (scale - 1) * tileHeight;
 
             return Transform.translate(
               offset: Offset(dx, dy),
-              child: Transform.scale(scale: s, child: child),
+              child: Transform.scale(scale: scale, child: child),
             );
           },
         );

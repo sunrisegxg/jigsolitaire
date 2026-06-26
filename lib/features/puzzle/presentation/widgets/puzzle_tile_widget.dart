@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:test/model/puzzle_piece.dart';
 
-// --- TILE WIDGET (Ảnh ghép giữ nguyên) ---
+import '../../domain/entities/puzzle_piece.dart';
+
 class PuzzleTileWidget extends StatelessWidget {
   final PuzzlePiece piece;
   final List<PuzzlePiece> board;
@@ -18,50 +18,50 @@ class PuzzleTileWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    bool sameGroupTop = _checkSameGroup(0, -1);
-    bool sameGroupBottom = _checkSameGroup(0, 1);
-    bool sameGroupLeft = _checkSameGroup(-1, 0);
-    bool sameGroupRight = _checkSameGroup(1, 0);
+    final sameGroupTop = _checkSameGroup(0, -1);
+    final sameGroupBottom = _checkSameGroup(0, 1);
+    final sameGroupLeft = _checkSameGroup(-1, 0);
+    final sameGroupRight = _checkSameGroup(1, 0);
 
-    const double borderWidth = 1.5;
-    const double radiusVal = 8.0;
+    const borderWidth = 1.5;
+    const radiusValue = 8.0;
 
-    final tl = sameGroupLeft || sameGroupTop
+    final topLeft = sameGroupLeft || sameGroupTop
         ? Radius.zero
-        : const Radius.circular(radiusVal);
-    final tr = sameGroupRight || sameGroupTop
+        : const Radius.circular(radiusValue);
+    final topRight = sameGroupRight || sameGroupTop
         ? Radius.zero
-        : const Radius.circular(radiusVal);
-    final bl = sameGroupLeft || sameGroupBottom
+        : const Radius.circular(radiusValue);
+    final bottomLeft = sameGroupLeft || sameGroupBottom
         ? Radius.zero
-        : const Radius.circular(radiusVal);
-    final br = sameGroupRight || sameGroupBottom
+        : const Radius.circular(radiusValue);
+    final bottomRight = sameGroupRight || sameGroupBottom
         ? Radius.zero
-        : const Radius.circular(radiusVal);
+        : const Radius.circular(radiusValue);
 
     return Container(
       clipBehavior: Clip.hardEdge,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.only(
-          topLeft: tl,
-          topRight: tr,
-          bottomLeft: bl,
-          bottomRight: br,
+          topLeft: topLeft,
+          topRight: topRight,
+          bottomLeft: bottomLeft,
+          bottomRight: bottomRight,
         ),
       ),
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final double w = constraints.maxWidth;
-          final double h = constraints.maxHeight;
+          final width = constraints.maxWidth;
+          final height = constraints.maxHeight;
 
           return Stack(
             clipBehavior: Clip.none,
             children: [
               Positioned(
-                left: -piece.origX * w,
-                top: -piece.origY * h,
-                width: w * gridSize,
-                height: h * gridSize,
+                left: -piece.origX * width,
+                top: -piece.origY * height,
+                width: width * gridSize,
+                height: height * gridSize,
                 child: SizedBox.expand(child: image),
               ),
               Positioned(
@@ -73,10 +73,10 @@ class PuzzleTileWidget extends StatelessWidget {
                   decoration: BoxDecoration(
                     border: Border.all(color: Colors.white, width: borderWidth),
                     borderRadius: BorderRadius.only(
-                      topLeft: tl,
-                      topRight: tr,
-                      bottomLeft: bl,
-                      bottomRight: br,
+                      topLeft: topLeft,
+                      topRight: topRight,
+                      bottomLeft: bottomLeft,
+                      bottomRight: bottomRight,
                     ),
                   ),
                 ),
@@ -88,15 +88,12 @@ class PuzzleTileWidget extends StatelessWidget {
                 right: sameGroupRight ? -borderWidth / 2 : 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(
-                      color: Colors.black,
-                      width: borderWidth / 2,
-                    ),
+                    border: Border.all(color: Colors.black, width: borderWidth / 2),
                     borderRadius: BorderRadius.only(
-                      topLeft: tl,
-                      topRight: tr,
-                      bottomLeft: bl,
-                      bottomRight: br,
+                      topLeft: topLeft,
+                      topRight: topRight,
+                      bottomLeft: bottomLeft,
+                      bottomRight: bottomRight,
                     ),
                   ),
                 ),
@@ -109,15 +106,14 @@ class PuzzleTileWidget extends StatelessWidget {
   }
 
   bool _checkSameGroup(int dx, int dy) {
-    int targetX = (piece.currentIndex % gridSize) + dx;
-    int targetY = (piece.currentIndex ~/ gridSize) + dy;
-    if (targetX < 0 ||
-        targetX > (gridSize - 1) ||
-        targetY < 0 ||
-        targetY > (gridSize - 1)) {
+    final targetX = (piece.currentIndex % gridSize) + dx;
+    final targetY = (piece.currentIndex ~/ gridSize) + dy;
+
+    if (targetX < 0 || targetX >= gridSize || targetY < 0 || targetY >= gridSize) {
       return false;
     }
-    int targetIndex = targetY * gridSize + targetX;
+
+    final targetIndex = targetY * gridSize + targetX;
     return board[targetIndex].groupId == piece.groupId;
   }
 }
