@@ -65,7 +65,7 @@ class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
                     duration: const Duration(
                       milliseconds: AppConstants.swapAnimationMs,
                     ),
-                    curve: Curves.easeOutCubic,
+                    curve: Curves.ease,
                     left: (index % gridSize) * tileWidth,
                     top: (index ~/ gridSize) * tileHeight,
                     width: tileWidth,

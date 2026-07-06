@@ -127,15 +127,7 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       oldGroupMap: moveResult.oldGroupMap,
     );
 
-    final isCompleted = checkPuzzleCompletedUseCase.execute(mergeResult.board);
-
-    emit(
-      state.copyWith(
-        board: mergeResult.board,
-        isCompleted: isCompleted,
-        phase: isCompleted ? PuzzleGamePhase.completed : state.phase,
-      ),
-    );
+    emit(state.copyWith(board: mergeResult.board));
 
     if (mergeResult.mergedGroupIds.isEmpty) {
       emit(state.copyWith(isProcessingDrop: false));
@@ -164,6 +156,16 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
 
     emit(
       state.copyWith(pulsingGroups: nextPulsingGroups, isProcessingDrop: false),
+    );
+
+    // kiểm tra completed
+    final isCompleted = checkPuzzleCompletedUseCase.execute(mergeResult.board);
+
+    emit(
+      state.copyWith(
+        isCompleted: isCompleted,
+        phase: isCompleted ? PuzzleGamePhase.completed : state.phase,
+      ),
     );
   }
 
