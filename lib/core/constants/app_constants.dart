@@ -14,4 +14,7 @@ class AppConstants {
   static const int beforePulseDelayMs = 50;
   static const int pulseAnimationMs = 400;
   static const int snapBackAnimationMs = 500;
+
+  //complete game
+  static const int gameAppBarShrinkAnimationMs = 800;
 }

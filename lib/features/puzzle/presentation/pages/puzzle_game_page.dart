@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:test/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
 
 import '../../../../core/constants/app_constants.dart';
@@ -25,41 +26,60 @@ class PuzzleGamePage extends StatelessWidget {
 class _PuzzleGameView extends StatelessWidget {
   const _PuzzleGameView();
 
+  void _launchConfetti(BuildContext context) {
+    Confetti.launch(
+      context,
+      options: const ConfettiOptions(
+        particleCount: 120,
+        spread: 40,
+        startVelocity: 40,
+        gravity: -0.5,
+        ticks: 300,
+        x: 0.25,
+        y: 0.75,
+        colors: [
+          Colors.green,
+          Colors.blue,
+          Colors.pink,
+          Colors.orange,
+          Colors.purple,
+          Colors.yellow,
+        ],
+      ),
+    );
+    Confetti.launch(
+      context,
+      options: const ConfettiOptions(
+        particleCount: 120,
+        spread: 40,
+        startVelocity: 40,
+        gravity: -1.0,
+        ticks: 300,
+        x: 0.75,
+        y: 0.75,
+        colors: [
+          Colors.green,
+          Colors.blue,
+          Colors.pink,
+          Colors.orange,
+          Colors.purple,
+          Colors.yellow,
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return BlocConsumer<PuzzleBloc, PuzzleState>(
-      listenWhen: (previous, current) =>
-          previous.isCompleted != current.isCompleted,
+      listenWhen: (previous, current) {
+        return !previous.isCompleted && current.isCompleted;
+      },
       listener: (context, state) {
-        if (!state.isCompleted) return;
-
-        // showDialog<void>(
-        //   context: context,
-        //   builder: (_) {
-        //     return AlertDialog(
-        //       title: const Text('Completed!'),
-        //       content: const Text('You have completed the puzzle.'),
-        //       actions: [
-        //         TextButton(
-        //           onPressed: () => Navigator.of(context).pop(),
-        //           child: const Text('Close'),
-        //         ),
-        //         FilledButton(
-        //           onPressed: () {
-        //             Navigator.of(context).pop();
-        //             context.read<PuzzleBloc>().add(
-        //               const PuzzleResetRequested(),
-        //             );
-        //           },
-        //           child: const Text('Play Again'),
-        //         ),
-        //       ],
-        //     );
-        //   },
-        // );
+        _launchConfetti(context);
       },
       builder: (context, state) {
-        final isCompleted = context.watch<PuzzleBloc>().state.isCompleted;
+        final isCompleted = state.isCompleted;
 
         return Scaffold(
           backgroundColor: const Color.fromARGB(255, 6, 93, 6),
@@ -71,53 +91,63 @@ class _PuzzleGameView extends StatelessWidget {
                 alignment: Alignment.topCenter,
                 child: isCompleted
                     ? const SizedBox.shrink()
-                    : Padding(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 8.0,
-                          vertical: 16.0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            GameCircleButton(
-                              onPressed: () {},
-                              child: const Icon(
-                                Icons.lightbulb,
-                                color: Colors.grey,
-                              ),
+                    : Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const SizedBox(height: 24),
+                          Padding(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 8.0,
+                              vertical: 4.0,
                             ),
-                            Text(
-                              'Level 1',
-                              style: Theme.of(context).textTheme.headlineSmall
-                                  ?.copyWith(color: Colors.white),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                GameCircleButton(
+                                  onPressed: () {},
+                                  child: const Icon(
+                                    Icons.lightbulb,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                                Text(
+                                  'Level 1',
+                                  style: Theme.of(context)
+                                      .textTheme
+                                      .headlineSmall
+                                      ?.copyWith(color: Colors.white),
+                                ),
+                                GameCircleButton(
+                                  onPressed: () {
+                                    context.read<PuzzleBloc>().add(
+                                      const PuzzleResetRequested(),
+                                    );
+                                  },
+                                  child: const Icon(
+                                    Icons.settings,
+                                    color: Colors.grey,
+                                  ),
+                                ),
+                              ],
                             ),
-                            GameCircleButton(
-                              onPressed: () {
-                                context.read<PuzzleBloc>().add(
-                                  const PuzzleResetRequested(),
-                                );
-                              },
-                              child: const Icon(
-                                Icons.settings,
-                                color: Colors.grey,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
               ),
 
-              SizedBox(height: 10),
+              const SizedBox(height: 32),
+
               Center(
                 child: AspectRatio(
                   aspectRatio: AppConstants.puzzleAspectRatio,
-                  child: Padding(
+                  child: const Padding(
                     padding: EdgeInsets.all(8),
                     child: PuzzleBoardWidget(),
                   ),
                 ),
               ),
-              ColoredBox(
+
+              const ColoredBox(
                 color: Colors.black,
                 child: SizedBox(height: 80, width: 300),
               ),
