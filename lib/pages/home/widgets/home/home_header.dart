@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../services/interaction_service.dart';
 import '../../../collection/screen/collection_screen.dart';
 import '../../dialogs/setting_dialog.dart';
 
@@ -17,19 +18,20 @@ class HomeHeader extends StatelessWidget {
         padding: EdgeInsets.only(
           left: MediaQuery.of(context).size.width * 0.025,
           right: MediaQuery.of(context).size.width * 0.025,
-          bottom: MediaQuery.of(context).size.height * 0.05,
+          bottom: MediaQuery.of(context).size.height * 0.025,
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
                     builder: (context) => const CollectionScreen(),
                   ),
                 );
+                await InteractionService.instance.tap();
               },
               child: Container(
                 width: 40,
@@ -47,7 +49,7 @@ class HomeHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Image.asset('assets/card.png'),
+                child: Image.asset('assets/images/card.png'),
               ),
             ),
 
@@ -82,11 +84,12 @@ class HomeHeader extends StatelessWidget {
             const Spacer(),
 
             GestureDetector(
-              onTap: () {
+              onTap: () async {
                 showDialog(
                   context: context,
                   builder: (_) => const SettingDialog(),
                 );
+                await InteractionService.instance.tap();
               },
               child: Container(
                 width: 40,
@@ -104,7 +107,7 @@ class HomeHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Image.asset('assets/settings.jpeg'),
+                child: Image.asset('assets/images/settings.jpeg'),
               ),
             ),
           ],

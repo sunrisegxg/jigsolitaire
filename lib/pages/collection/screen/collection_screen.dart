@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../services/interaction_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/vibration_service.dart';
+import '../../home/model/setting_type.dart';
 import '../model/collection_model.dart';
 
 class CollectionScreen extends StatefulWidget {
@@ -11,7 +15,11 @@ class CollectionScreen extends StatefulWidget {
 
 class _CollectionScreenState extends State<CollectionScreen> {
   final collections = [
-    CollectionModel(image: 'assets/italy.jpg', title: '1-25', isUnlocked: true),
+    CollectionModel(
+      image: 'assets/images/italy.jpg',
+      title: '1-25',
+      isUnlocked: true,
+    ),
     CollectionModel(title: '26-50', isUnlocked: false),
     CollectionModel(title: '51-75', isUnlocked: false),
     CollectionModel(title: '76-100', isUnlocked: false),
@@ -25,7 +33,7 @@ class _CollectionScreenState extends State<CollectionScreen> {
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/background.png', // ảnh nền của bạn
+              'assets/images/background.png', // ảnh nền của bạn
               fit: BoxFit.cover,
             ),
           ),
@@ -50,8 +58,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         Align(
                           alignment: Alignment.centerLeft,
                           child: IconButton(
-                            onPressed: () {
+                            onPressed: () async {
                               Navigator.pop(context);
+                              await InteractionService.instance.tap();
                             },
                             icon: const Icon(
                               Icons.close,
@@ -87,11 +96,9 @@ class _CollectionScreenState extends State<CollectionScreen> {
                         final item = collections[index];
 
                         return GestureDetector(
-                          onTap: item.isUnlocked
-                              ? () {
-                                  // xử lý chọn collection
-                                }
-                              : null,
+                          onTap: () async {
+                            await InteractionService.instance.tap();
+                          },
                           child: Stack(
                             children: [
                               Container(

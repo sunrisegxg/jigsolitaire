@@ -35,7 +35,7 @@ class HomeGrid extends StatelessWidget {
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(4),
                     child: Image.asset(
-                      'assets/backcard.jpeg',
+                      'assets/images/backcard.jpeg',
                       fit: BoxFit.cover,
                     ),
                   ),

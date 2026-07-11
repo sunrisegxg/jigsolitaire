@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../services/interaction_service.dart';
 import '../../dialogs/daily_challenge_dialog.dart';
 
 class HomeBottomBar extends StatelessWidget {
@@ -18,11 +19,12 @@ class HomeBottomBar extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           GestureDetector(
-            onTap: () {
+            onTap: () async {
               showDialog(
                 context: context,
                 builder: (_) => const DailyChallengeDialog(),
               );
+              await InteractionService.instance.tap();
             },
             child: Container(
               width: 50,
@@ -55,7 +57,9 @@ class HomeBottomBar extends StatelessWidget {
               ],
             ),
             child: TextButton(
-              onPressed: () {},
+              onPressed: () async {
+                await InteractionService.instance.tap();
+              },
               style: TextButton.styleFrom(
                 padding: EdgeInsets.symmetric(vertical: 12, horizontal: 48),
                 shape: RoundedRectangleBorder(
@@ -110,7 +114,7 @@ class HomeBottomBar extends StatelessWidget {
               ],
             ),
             child: Image.asset(
-              'assets/crown.png',
+              'assets/images/crown.png',
               color: Color(0xFF989C9B),
               fit: BoxFit.cover,
             ),

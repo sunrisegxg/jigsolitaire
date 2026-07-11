@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-
 import 'pages/home/screen/homepage.dart';
+import 'services/sound_service.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await SoundService.instance.init();
   runApp(const MyApp());
 }
 

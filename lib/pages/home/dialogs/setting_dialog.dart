@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../../../services/audio_service.dart';
+import '../../../services/interaction_service.dart';
+import '../../../services/sound_service.dart';
+import '../../../services/vibration_service.dart';
 import '../model/setting_type.dart';
 
 class SettingDialog extends StatefulWidget {
@@ -32,8 +36,10 @@ class _SettingDialogState extends State<SettingDialog> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: IconButton(
-                        onPressed: () {
+                        onPressed: () async {
                           Navigator.pop(context);
+
+                          await InteractionService.instance.tap();
                         },
                         icon: const Icon(
                           Icons.close,
@@ -59,7 +65,9 @@ class _SettingDialogState extends State<SettingDialog> {
                 _buildButton(
                   icon: Icons.help,
                   text: "Help Center",
-                  onTap: () {},
+                  onTap: () async {
+                    await InteractionService.instance.tap();
+                  },
                 ),
 
                 const SizedBox(height: 25),
@@ -68,7 +76,9 @@ class _SettingDialogState extends State<SettingDialog> {
                 _buildButton(
                   icon: Icons.save,
                   text: "Save your progress",
-                  onTap: () {},
+                  onTap: () async {
+                    await InteractionService.instance.tap();
+                  },
                 ),
 
                 const SizedBox(height: 35),
@@ -81,11 +91,17 @@ class _SettingDialogState extends State<SettingDialog> {
                       disabledIcon: Icons.music_off,
                       icon: Icons.music_note,
                       isEnabled: settings[SettingType.music]!,
-                      onTap: () {
+                      onTap: () async {
                         setDialogState(() {
                           settings[SettingType.music] =
                               !settings[SettingType.music]!;
                         });
+                        if (settings[SettingType.music]!) {
+                          await AudioService.instance.startMusic();
+                        } else {
+                          await AudioService.instance.stopMusic();
+                        }
+                        await InteractionService.instance.tap();
                       },
                     ),
                     const SizedBox(width: 20),
@@ -93,11 +109,12 @@ class _SettingDialogState extends State<SettingDialog> {
                       disabledIcon: Icons.volume_off,
                       icon: Icons.volume_up,
                       isEnabled: settings[SettingType.sound]!,
-                      onTap: () {
+                      onTap: () async {
                         setDialogState(() {
                           settings[SettingType.sound] =
                               !settings[SettingType.sound]!;
                         });
+                        await InteractionService.instance.tap();
                       },
                     ),
                     const SizedBox(width: 20),
@@ -106,11 +123,12 @@ class _SettingDialogState extends State<SettingDialog> {
                         settings[SettingType.vibration]!,
                       ),
                       isEnabled: settings[SettingType.vibration]!,
-                      onTap: () {
+                      onTap: () async {
                         setDialogState(() {
                           settings[SettingType.vibration] =
                               !settings[SettingType.vibration]!;
                         });
+                        await InteractionService.instance.tap();
                       },
                     ),
                     const SizedBox(width: 20),
@@ -118,11 +136,12 @@ class _SettingDialogState extends State<SettingDialog> {
                       disabledIcon: Icons.notifications_off,
                       icon: Icons.notifications,
                       isEnabled: settings[SettingType.notification]!,
-                      onTap: () {
+                      onTap: () async {
                         setDialogState(() {
                           settings[SettingType.notification] =
                               !settings[SettingType.notification]!;
                         });
+                        await InteractionService.instance.tap();
                       },
                     ),
                   ],

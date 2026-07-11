@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import '../../../services/interaction_service.dart';
 import '../utils/calendar_helper.dart';
 import '../widgets/calendar/daily_calendar.dart';
 
@@ -147,7 +148,10 @@ class _DailyChallengeDialogState extends State<DailyChallengeDialog> {
         Align(
           alignment: Alignment.centerLeft,
           child: IconButton(
-            onPressed: () => Navigator.pop(context),
+            onPressed: () async {
+              Navigator.pop(context);
+              await InteractionService.instance.tap();
+            },
             icon: const Icon(Icons.close, color: Colors.white, size: 28),
           ),
         ),
@@ -187,7 +191,10 @@ class _DailyChallengeDialogState extends State<DailyChallengeDialog> {
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextButton(
-        onPressed: () => Navigator.pop(context),
+        onPressed: () async {
+          Navigator.pop(context);
+          await InteractionService.instance.tap();
+        },
         child: Text(
           'PLAY',
           style: GoogleFonts.poppins(
