@@ -161,12 +161,18 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     // kiểm tra completed
     final isCompleted = checkPuzzleCompletedUseCase.execute(mergeResult.board);
 
-    emit(
-      state.copyWith(
-        isCompleted: isCompleted,
-        phase: isCompleted ? PuzzleGamePhase.completed : state.phase,
-      ),
-    );
+    if (isCompleted) {
+      await Future.delayed(
+        const Duration(milliseconds: AppConstants.completeDelayMs),
+      );
+
+      emit(
+        state.copyWith(
+          isCompleted: isCompleted,
+          phase: isCompleted ? PuzzleGamePhase.completed : state.phase,
+        ),
+      );
+    }
   }
 
   void _onSnapBackRequested(
