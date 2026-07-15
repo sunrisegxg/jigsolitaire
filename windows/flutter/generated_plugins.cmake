@@ -6,7 +6,10 @@ list(APPEND FLUTTER_PLUGIN_LIST
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST
+<<<<<<< HEAD
   flutter_soloud
+=======
+>>>>>>> gameplay
 )
 
 set(PLUGIN_BUNDLED_LIBRARIES)

@@ -1,23 +1,33 @@
 import 'package:flutter/material.dart';
-import 'pages/home/screen/homepage.dart';
-import 'services/sound_service.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:test/only_one_point_widget.dart';
 
-void main() async {
-  WidgetsFlutterBinding.ensureInitialized();
-  await SoundService.instance.init();
-  runApp(const MyApp());
+import 'app.dart';
+
+void main() {
+  Bloc.observer = AppBlocObserver();
+  runApp(
+    OnlyOnePointerRecognizerWidget(
+      child: RepositoryProvider(create: (context) => App(), child: const App()),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // This widget is the root of your application.
+/// Logs all BLoC state transitions globally.
+class AppBlocObserver extends BlocObserver {
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Flutter Demo',
-      home: HomePage(),
-      debugShowCheckedModeBanner: false,
+  void onChange(BlocBase bloc, Change change) {
+    super.onChange(bloc, change);
+    debugPrint(
+      '[${bloc.runtimeType}] '
+      '${change.currentState.runtimeType} -> '
+      '${change.nextState.runtimeType}',
     );
+  }
+
+  @override
+  void onError(BlocBase bloc, Object error, StackTrace stackTrace) {
+    debugPrint('[${bloc.runtimeType}] ERROR: $error');
+    super.onError(bloc, error, stackTrace);
   }
 }
