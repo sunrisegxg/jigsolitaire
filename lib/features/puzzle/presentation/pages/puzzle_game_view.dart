@@ -4,6 +4,8 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
+import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
+import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../bloc/puzzle_bloc.dart';
@@ -30,6 +32,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
 
   // Thay số này bằng số tiền lấy từ Bloc/repository nếu dự án đã lưu tiền.
   int _walletCoins = 575;
+  // int _displaydedCoins = 0; ve sau xoa wallet coin
   int _creditedCoins = 0;
 
   final GlobalKey _rootStackKey = GlobalKey();
@@ -396,6 +399,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
 
     setState(() {
       _walletCoins += difference;
+      // _displayedCoins += difference; xoa dong tren
       _creditedCoins = targetCredited;
     });
   }
@@ -423,6 +427,14 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
 
     if (!mounted) return;
     _goToNextLevel();
+  }
+
+  void _onCoinAnimationCompleted() {
+    context.read<GameProgressBloc>().add(const CoinsEarned(_rewardCoins));
+
+    // context.read<GameProgressBloc>().add(
+    //       LevelCompleted(currentLevel),
+    //     );
   }
 
   void _goToNextLevel() {

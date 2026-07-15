@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:test/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
+import 'package:jigsolitaire/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
 
 class GameAppBar extends StatelessWidget {
   final bool isCompleted;
