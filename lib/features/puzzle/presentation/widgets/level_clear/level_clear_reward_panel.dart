@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:jigsolitaire/core/services/interaction_service.dart';
 
 class LevelClearRewardPanel extends StatelessWidget {
   const LevelClearRewardPanel({
@@ -33,17 +36,11 @@ class LevelClearRewardPanel extends StatelessWidget {
             scale: rewardScale,
             child: Container(
               key: rewardKey,
-              padding: const EdgeInsets.symmetric(
-                horizontal: 14,
-                vertical: 7,
-              ),
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
               decoration: BoxDecoration(
                 color: const Color(0xB3000000),
                 borderRadius: BorderRadius.circular(22),
-                border: Border.all(
-                  color: const Color(0xFFFFD54F),
-                  width: 1.5,
-                ),
+                border: Border.all(color: const Color(0xFFFFD54F), width: 1.5),
               ),
               child: Row(
                 mainAxisSize: MainAxisSize.min,
@@ -74,28 +71,60 @@ class LevelClearRewardPanel extends StatelessWidget {
             position: buttonSlide,
             child: SizedBox(
               width: 150,
-              height: 52,
-              child: ElevatedButton(
-                onPressed: isLocked ? null : onNextPressed,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFF00A7E1),
-                  disabledBackgroundColor: const Color(0xFF00A7E1),
-                  foregroundColor: Colors.white,
-                  elevation: 7,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: const BorderSide(
-                      color: Color(0xFFB3E5FC),
-                      width: 2,
+              height: 70,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: isLocked
+                        ? const [Color(0xFF8FCFE5), Color(0xFF5A9BB5)]
+                        : const [Color(0xFF4FD3FF), Color(0xFF0077B6)],
+                  ),
+                  borderRadius: BorderRadius.circular(12),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black26,
+                      offset: Offset(0, 6),
+                      blurRadius: 10,
+                    ),
+                  ],
+                ),
+                child: ElevatedButton(
+                  onPressed: isLocked
+                      ? null
+                      : () async {
+                          await context.read<InteractionService>().tap();
+                          onNextPressed();
+                        },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    disabledBackgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    disabledForegroundColor: Colors.white70,
+                    elevation: 0,
+                    shadowColor: Colors.transparent,
+
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
+
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
                     ),
                   ),
-                ),
-                child: const Text(
-                  'NEXT',
-                  style: TextStyle(
-                    fontSize: 21,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1,
+                  child: Text(
+                    'NEXT',
+                    maxLines: 1,
+                    style: GoogleFonts.poppins(
+                      textStyle: TextStyle(
+                        color: Colors.white,
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        height: 1.2,
+                      ),
+                    ),
                   ),
                 ),
               ),

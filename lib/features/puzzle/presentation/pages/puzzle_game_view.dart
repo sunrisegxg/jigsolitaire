@@ -4,9 +4,11 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
+import 'package:jigsolitaire/core/services/interaction_service.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
 import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
+import 'package:jigsolitaire/features/puzzle/presentation/widgets/setting/game_setting_dialog.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../bloc/puzzle_bloc.dart';
@@ -223,7 +225,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
       },
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: const Color.fromARGB(255, 6, 93, 6),
+          backgroundColor: AppConstants.puzzleBackgroundColor,
           body: SafeArea(
             child: Stack(
               key: _rootStackKey,
@@ -290,7 +292,10 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
     return Column(
       children: [
         const SizedBox(height: 24),
-        GameAppBar(isCompleted: isCompleted, onResetPuzzle: _resetPuzzle),
+        GameAppBar(
+          isCompleted: isCompleted,
+          onSettingsPressed: _showSettingsDialog,
+        ),
         const SizedBox(height: 32),
         _buildPuzzleBoard(),
         GameCircleButton(
@@ -298,6 +303,30 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
           child: const Icon(Icons.settings, color: Colors.grey),
         ),
       ],
+    );
+  }
+
+  //Settings dialog
+  void _onHomePressed() {
+    Navigator.of(context).pop();
+  }
+
+  void _onRestartPressed() {
+    _resetPuzzle();
+    
+  }
+
+  Future<void> _showSettingsDialog() async {
+    await context.read<InteractionService>().tap();
+
+    if (!mounted) return;
+
+    await showDialog<void>(
+      context: context,
+      builder: (_) => GameSettingDialog(
+        onHomePressed: _onHomePressed,
+        onRestartPressed: _onRestartPressed,
+      ),
     );
   }
 

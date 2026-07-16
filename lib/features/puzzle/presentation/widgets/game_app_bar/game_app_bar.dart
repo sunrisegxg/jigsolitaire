@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
 
 class GameAppBar extends StatelessWidget {
   final bool isCompleted;
-  final VoidCallback onResetPuzzle;
+  final VoidCallback onSettingsPressed;
   const GameAppBar({
     super.key,
     required this.isCompleted,
-    required this.onResetPuzzle,
+    required this.onSettingsPressed,
   });
 
   @override
@@ -33,17 +34,22 @@ class GameAppBar extends StatelessWidget {
                 children: [
                   GameCircleButton(
                     onPressed: () {},
-                    child: const Icon(Icons.lightbulb, color: Colors.grey),
+                    child: const Icon(Icons.lightbulb, color: Colors.white),
                   ),
                   Text(
                     'Level $currentLevel',
-                    style: Theme.of(
-                      context,
-                    ).textTheme.headlineSmall?.copyWith(color: Colors.white),
+                    style: GoogleFonts.poppins(
+                      textStyle: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        height: 1,
+                      ),
+                    ),
                   ),
                   GameCircleButton(
-                    onPressed: onResetPuzzle,
-                    child: const Icon(Icons.settings, color: Colors.grey),
+                    onPressed: onSettingsPressed,
+                    child: const Icon(Icons.settings, color: Colors.white),
                   ),
                 ],
               ),

@@ -68,12 +68,10 @@ class HomeBottomBar extends StatelessWidget {
               ],
             ),
             child: TextButton(
-              onPressed: isAllCompleted
-                  ? null
-                  : () async {
-                      await context.read<InteractionService>().tap();
-                      onPlayPressed();
-                    },
+              onPressed: () async {
+                await context.read<InteractionService>().tap();
+                onPlayPressed();
+              },
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   vertical: 12,
@@ -88,7 +86,7 @@ class HomeBottomBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    isAllCompleted ? 'COMPLETE' : 'PLAY',
+                    'PLAY',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         color: Colors.white,
@@ -99,7 +97,7 @@ class HomeBottomBar extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    isAllCompleted ? '50 / 50' : 'LEVEL $currentLevel',
+                    'LEVEL $currentLevel',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         color: Colors.white,

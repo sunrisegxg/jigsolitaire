@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 class AppConstants {
   const AppConstants._();
 
@@ -21,4 +23,7 @@ class AppConstants {
   //complete game
   static const int gameAppBarShrinkAnimationMs = 800;
   static const int completeDelayMs = 300;
+
+  //Color
+  static const Color puzzleBackgroundColor = Color.fromARGB(255, 72, 155, 112);
 }
