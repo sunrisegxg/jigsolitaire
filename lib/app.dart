@@ -21,14 +21,14 @@ class App extends StatelessWidget {
       child: MultiBlocProvider(
         providers: [
           BlocProvider(
+            lazy: false,
             create: (_) =>
                 InjectionContainer.createSettingsBloc()
                   ..add(const SettingsStarted()),
           ),
+
           BlocProvider(
-            create: (_) => InjectionContainer.createGameProgressBloc(),
-          ),
-          BlocProvider(
+            lazy: false,
             create: (_) =>
                 InjectionContainer.createGameProgressBloc()
                   ..add(const GameProgressStarted()),

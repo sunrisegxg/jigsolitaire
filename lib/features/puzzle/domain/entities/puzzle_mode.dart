@@ -4,7 +4,7 @@ extension PuzzleModeExtension on PuzzleMode {
   int get gridSize {
     return switch (this) {
       PuzzleMode.normal => 2,
-      PuzzleMode.hard => 6,
+      PuzzleMode.hard => 2,
       PuzzleMode.dailyChallenge => 8,
       PuzzleMode.masterChallenge => 9,
     };

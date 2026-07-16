@@ -46,6 +46,7 @@ class InjectionContainer {
       settingsRepository: settingsRepository,
       soundService: soundService,
       vibrationService: vibrationService,
+      audioService: audioService,
     );
   }
 
