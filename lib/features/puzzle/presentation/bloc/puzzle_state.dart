@@ -1,11 +1,13 @@
 import 'dart:ui';
 
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
+
 import '../../../../core/constants/app_constants.dart';
 import '../../domain/entities/puzzle_board.dart';
 
 const Object _unset = Object();
 
-enum PuzzleGamePhase { dealing, flipping, playing, completed }
+enum PuzzleGamePhase { loading, dealing, flipping, playing, completed }
 
 class PuzzleState {
   final PuzzleBoard board;
@@ -17,6 +19,7 @@ class PuzzleState {
   final Set<int> pulsingGroups;
   final Map<int, Offset> snapBackOffsets;
   final bool isCompleted;
+  final PuzzleLevelConfig? levelConfig;
 
   const PuzzleState({
     required this.board,
@@ -28,6 +31,7 @@ class PuzzleState {
     required this.pulsingGroups,
     required this.snapBackOffsets,
     required this.isCompleted,
+    this.levelConfig,
   });
 
   factory PuzzleState.initial() {
@@ -41,13 +45,16 @@ class PuzzleState {
       pulsingGroups: const {},
       snapBackOffsets: const {},
       isCompleted: false,
+      levelConfig: null,
     );
   }
 
   // Trả về true nếu người chơi có thể tương tác với trò chơi (kéo thả, sắp xếp, v.v.) trong giai đoạn chơi.
   // Tránh việc đang xử lý animation, drop, hoặc đang trong giai đoạn khác (dealing, flipping) mà vẫn cho phép tương tác.
   bool get canInteract {
-    return phase == PuzzleGamePhase.playing && !isProcessingDrop;
+    return phase == PuzzleGamePhase.playing &&
+        !isProcessingDrop &&
+        !isCompleted;
   }
 
   PuzzleState copyWith({
@@ -60,6 +67,7 @@ class PuzzleState {
     Set<int>? pulsingGroups,
     Map<int, Offset>? snapBackOffsets,
     bool? isCompleted,
+    PuzzleLevelConfig? levelConfig,
   }) {
     return PuzzleState(
       board: board ?? this.board,
@@ -73,6 +81,7 @@ class PuzzleState {
       pulsingGroups: pulsingGroups ?? this.pulsingGroups,
       snapBackOffsets: snapBackOffsets ?? this.snapBackOffsets,
       isCompleted: isCompleted ?? this.isCompleted,
+      levelConfig: levelConfig ?? this.levelConfig,
     );
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
 
 import 'core/services/interaction_service.dart';
 import 'features/home/presentation/pages/home_page.dart';
@@ -26,6 +27,11 @@ class App extends StatelessWidget {
           ),
           BlocProvider(
             create: (_) => InjectionContainer.createGameProgressBloc(),
+          ),
+          BlocProvider(
+            create: (_) =>
+                InjectionContainer.createGameProgressBloc()
+                  ..add(const GameProgressStarted()),
           ),
         ],
         child: const MaterialApp(

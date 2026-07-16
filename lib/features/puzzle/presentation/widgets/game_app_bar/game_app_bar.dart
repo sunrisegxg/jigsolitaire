@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
 
 class GameAppBar extends StatelessWidget {
@@ -12,6 +14,12 @@ class GameAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final currentLevel = context
+        .read<GameProgressBloc>()
+        .state
+        .progress
+        .currentLevel;
+
     return AnimatedSize(
       duration: const Duration(milliseconds: 800),
       curve: Curves.easeInOut,
@@ -28,7 +36,7 @@ class GameAppBar extends StatelessWidget {
                     child: const Icon(Icons.lightbulb, color: Colors.grey),
                   ),
                   Text(
-                    'Level 1',
+                    'Level $currentLevel',
                     style: Theme.of(
                       context,
                     ).textTheme.headlineSmall?.copyWith(color: Colors.white),

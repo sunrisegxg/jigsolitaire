@@ -6,6 +6,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../bloc/puzzle_bloc.dart';
@@ -20,7 +21,8 @@ import '../widgets/level_clear/level_clear_reward_panel.dart';
 import '../widgets/puzzle_board_widget.dart';
 
 class PuzzleGameView extends StatefulWidget {
-  const PuzzleGameView({super.key});
+  final PuzzleLevelConfig config;
+  const PuzzleGameView({required this.config, super.key});
 
   @override
   State<PuzzleGameView> createState() => _PuzzleGameViewState();
@@ -28,12 +30,11 @@ class PuzzleGameView extends StatefulWidget {
 
 class _PuzzleGameViewState extends State<PuzzleGameView>
     with TickerProviderStateMixin {
-  static const int _rewardCoins = 108;
+  late int _rewardCoins = 0;
 
   // Thay số này bằng số tiền lấy từ Bloc/repository nếu dự án đã lưu tiền.
-  int _walletCoins = 575;
-  // int _displaydedCoins = 0; ve sau xoa wallet coin
-  int _creditedCoins = 0;
+  late int _walletCoins = 0;
+  late int _creditedCoins = 0;
 
   final GlobalKey _rootStackKey = GlobalKey();
   final GlobalKey _rewardKey = GlobalKey();
@@ -215,6 +216,9 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
         return !previous.isCompleted && current.isCompleted;
       },
       listener: (context, state) {
+        _walletCoins = context.read<GameProgressBloc>().state.progress.coins;
+        _rewardCoins = widget.config.rewardCoins;
+
         _playLevelClearSequence();
       },
       builder: (context, state) {
@@ -342,7 +346,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
     _startContinuousConfetti();
   }
 
-  void _onNextPressed() {
+  void _onNextPressed() async {
     if (_nextButtonLocked || !_calculateCoinPositions()) return;
 
     _stopContinuousConfetti();
@@ -426,30 +430,40 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
     await Future<void>.delayed(const Duration(milliseconds: 180));
 
     if (!mounted) return;
-    _goToNextLevel();
+
+    _finishLevel();
   }
 
-  void _onCoinAnimationCompleted() {
-    context.read<GameProgressBloc>().add(const CoinsEarned(_rewardCoins));
+  void _finishLevel() {
+    final levelConfig = context.read<PuzzleBloc>().state.levelConfig;
+    print('Completed level: ${levelConfig?.level}');
 
-    // context.read<GameProgressBloc>().add(
-    //       LevelCompleted(currentLevel),
-    //     );
+    if (levelConfig == null) {
+      return;
+    }
+
+    context.read<GameProgressBloc>().add(
+      LevelCompletedAndRewarded(
+        level: levelConfig.level,
+        rewardCoins: _rewardCoins,
+      ),
+    );
+
+    Navigator.of(context).pop();
   }
 
-  void _goToNextLevel() {
-    _bannerController.reset();
-    _rewardController.reset();
-    _coinFlyController.reset();
+  // void _goToNextLevel() {
+  //   _bannerController.reset();
+  //   _rewardController.reset();
+  //   _coinFlyController.reset();
 
-    setState(() {
-      _nextButtonLocked = false;
-      _creditedCoins = 0;
-    });
+  //   setState(() {
+  //     _nextButtonLocked = false;
+  //     _creditedCoins = 0;
+  //   });
 
-    // Hiện tại dùng event reset để tạo lượt chơi mới.
-    context.read<PuzzleBloc>().add(const PuzzleResetRequested());
-  }
+  //   // Hiện tại dùng event reset để tạo lượt chơi mới.
+  // }
 
   void _resetPuzzle() {
     _stopContinuousConfetti();

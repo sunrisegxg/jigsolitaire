@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_board.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
 
 import '../../../../core/constants/app_constants.dart';
 import '../../domain/usecases/check_puzzle_completed_usecase.dart';
@@ -36,24 +38,70 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
     PuzzleStarted event,
     Emitter<PuzzleState> emit,
   ) async {
-    await _startNewGame(emit, isReset: false);
+    final config = event.config;
+
+    await _startNewGame(
+      emit,
+      isReset: false,
+      gridSize: config.gridSize,
+      levelConfig: config,
+    );
   }
 
   Future<void> _onResetRequested(
     PuzzleResetRequested event,
     Emitter<PuzzleState> emit,
   ) async {
-    await _startNewGame(emit, isReset: true);
+    final config = state.levelConfig;
+
+    await _startNewGame(
+      emit,
+      isReset: true,
+      gridSize: config?.gridSize ?? AppConstants.defaultGridSize,
+      levelConfig: config,
+    );
   }
 
   Future<void> _startNewGame(
     Emitter<PuzzleState> emit, {
     required bool isReset,
+    required int gridSize,
+    PuzzleLevelConfig? levelConfig,
   }) async {
-    final board = isReset
-        ? resetPuzzleUseCase.execute(gridSize: AppConstants.defaultGridSize)
-        : startPuzzleUseCase.execute(gridSize: AppConstants.defaultGridSize);
+    // Hiện loading trước khi tạo board.
+    emit(
+      state.copyWith(
+        phase: PuzzleGamePhase.loading,
+        draggingGroupId: null,
+        isProcessingDrop: false,
+        pulsingGroups: {},
+        snapBackOffsets: {},
+        isCompleted: false,
 
+        // Khi reset không truyền config mới,
+        // nên giữ lại config của level hiện tại.
+        levelConfig: levelConfig ?? state.levelConfig,
+      ),
+    );
+
+    // Nhường một frame để UI có thể hiển thị loading.
+    await Future<void>.delayed(Duration.zero);
+
+    if (isClosed) return;
+
+    // Đưa việc tạo board sang một Future để không thực hiện
+    // ngay trong cùng frame với lần emit loading.
+    final board = await Future<PuzzleBoard>(() {
+      if (isReset) {
+        return resetPuzzleUseCase.execute(gridSize: gridSize);
+      }
+
+      return startPuzzleUseCase.execute(gridSize: gridSize);
+    });
+
+    if (isClosed) return;
+
+    // Tạo board xong thì bắt đầu animation chia bài.
     emit(
       state.copyWith(
         board: board,
@@ -65,27 +113,34 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
         pulsingGroups: {},
         snapBackOffsets: {},
         isCompleted: false,
+        levelConfig: levelConfig ?? state.levelConfig,
       ),
     );
 
     for (int i = 0; i < board.totalPieces; i++) {
-      await Future.delayed(
+      await Future<void>.delayed(
         const Duration(milliseconds: AppConstants.dealStepMs),
       );
+
       if (isClosed) return;
+
       emit(state.copyWith(dealIndex: i + 1));
     }
 
-    await Future.delayed(
+    await Future<void>.delayed(
       const Duration(milliseconds: AppConstants.beforeFlipDelayMs),
     );
+
     if (isClosed) return;
+
     emit(state.copyWith(phase: PuzzleGamePhase.flipping));
 
-    await Future.delayed(
+    await Future<void>.delayed(
       const Duration(milliseconds: AppConstants.flipAnimationMs),
     );
+
     if (isClosed) return;
+
     emit(
       state.copyWith(phase: PuzzleGamePhase.playing, hasPlayedIntroFlip: true),
     );

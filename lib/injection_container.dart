@@ -2,11 +2,14 @@ import 'package:jigsolitaire/core/services/audio_service.dart';
 import 'package:jigsolitaire/core/services/interaction_service.dart';
 import 'package:jigsolitaire/core/services/sound_service.dart';
 import 'package:jigsolitaire/core/services/vibration_service.dart';
+import 'package:jigsolitaire/features/game_progress/data/local_game_progress_repository.dart';
+import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/home/presentation/bloc/home_bloc.dart';
 import 'package:jigsolitaire/features/settings/data/repositories/memory_settings_repository.dart';
 import 'package:jigsolitaire/features/settings/domain/repositories/settings_repository.dart';
 import 'package:jigsolitaire/features/settings/presentation/bloc/settings_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'features/puzzle/domain/services/puzzle_engine.dart';
 import 'features/puzzle/domain/services/puzzle_group_service.dart';
@@ -22,13 +25,17 @@ class InjectionContainer {
   const InjectionContainer._();
 
   static final AudioService audioService = AudioService.instance;
-
   static final SoundService soundService = SoundService.instance;
-
   static final VibrationService vibrationService = VibrationService.instance;
 
   static final SettingsRepository settingsRepository =
       MemorySettingsRepository();
+
+  static final SharedPreferencesAsync _sharedPreferences =
+      SharedPreferencesAsync();
+
+  static final GameProgressRepository gameProgressRepository =
+      LocalGameProgressRepository(preferences: _sharedPreferences);
 
   static late final InteractionService interactionService;
 
@@ -42,6 +49,7 @@ class InjectionContainer {
     );
   }
 
+  // settings bloc
   static SettingsBloc createSettingsBloc() {
     return SettingsBloc(
       repository: settingsRepository,
@@ -49,10 +57,12 @@ class InjectionContainer {
     );
   }
 
+  // game progress bloc
   static GameProgressBloc createGameProgressBloc() {
-    return GameProgressBloc();
+    return GameProgressBloc(repository: gameProgressRepository);
   }
 
+  // home bloc
   static HomeBloc createHomeBloc() {
     return HomeBloc();
   }

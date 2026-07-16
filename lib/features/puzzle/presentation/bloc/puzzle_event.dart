@@ -1,11 +1,15 @@
 import 'dart:ui';
 
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
+
 abstract class PuzzleEvent {
   const PuzzleEvent();
 }
 
 class PuzzleStarted extends PuzzleEvent {
-  const PuzzleStarted();
+  final PuzzleLevelConfig config;
+
+  const PuzzleStarted({required this.config});
 }
 
 class PuzzleResetRequested extends PuzzleEvent {
@@ -26,20 +30,14 @@ class PuzzleDropped extends PuzzleEvent {
   final int dragIndex;
   final int dropIndex;
 
-  const PuzzleDropped({
-    required this.dragIndex,
-    required this.dropIndex,
-  });
+  const PuzzleDropped({required this.dragIndex, required this.dropIndex});
 }
 
 class PuzzleSnapBackRequested extends PuzzleEvent {
   final int groupId;
   final Offset offset;
 
-  const PuzzleSnapBackRequested({
-    required this.groupId,
-    required this.offset,
-  });
+  const PuzzleSnapBackRequested({required this.groupId, required this.offset});
 }
 
 class PuzzleSnapBackFinished extends PuzzleEvent {

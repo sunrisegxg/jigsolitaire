@@ -1,25 +1,31 @@
 class GameProgress {
+  const GameProgress({this.completedLevelCount = 0, this.coins = 0});
+
+  final int completedLevelCount;
   final int coins;
-  final int currentLevel;
-  final Set<int> unlockedLevels;
 
-  const GameProgress({
-    this.coins = 0,
-    this.currentLevel = 1,
-    this.unlockedLevels = const {1},
-  });
+  static const int levelsPerPage = 25;
 
-  GameProgress copyWith({
-    int? coins,
-    int? currentLevel,
-    Set<int>? unlockedLevels,
-  }) {
+  int get currentLevel => completedLevelCount + 1;
+
+  int get currentPageIndex {
+    return (currentLevel - 1) ~/ levelsPerPage;
+  }
+
+  int get currentPageNumber => currentPageIndex + 1;
+
+  int get pageStartLevel {
+    return currentPageIndex * levelsPerPage + 1;
+  }
+
+  int get pageEndLevel {
+    return pageStartLevel + levelsPerPage - 1;
+  }
+
+  GameProgress copyWith({int? completedLevelCount, int? coins}) {
     return GameProgress(
+      completedLevelCount: completedLevelCount ?? this.completedLevelCount,
       coins: coins ?? this.coins,
-      currentLevel:
-          currentLevel ?? this.currentLevel,
-      unlockedLevels:
-          unlockedLevels ?? this.unlockedLevels,
     );
   }
 }

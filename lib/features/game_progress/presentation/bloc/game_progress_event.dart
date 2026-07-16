@@ -2,19 +2,20 @@ sealed class GameProgressEvent {
   const GameProgressEvent();
 }
 
-class GameProgressStarted
-    extends GameProgressEvent {
+class GameProgressStarted extends GameProgressEvent {
   const GameProgressStarted();
 }
 
-class CoinsEarned extends GameProgressEvent {
-  final int amount;
+class LevelCompletedAndRewarded extends GameProgressEvent {
+  const LevelCompletedAndRewarded({
+    required this.level,
+    required this.rewardCoins,
+  });
 
-  const CoinsEarned(this.amount);
+  final int level;
+  final int rewardCoins;
 }
 
-class LevelCompleted extends GameProgressEvent {
-  final int level;
-
-  const LevelCompleted(this.level);
+class GameProgressResetRequested extends GameProgressEvent {
+  const GameProgressResetRequested();
 }

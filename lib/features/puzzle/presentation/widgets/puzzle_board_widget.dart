@@ -22,8 +22,7 @@ class PuzzleBoardWidget extends StatefulWidget {
 
 class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
   final GlobalKey _stackKey = GlobalKey();
-
-  late final Image _puzzleImage = Image.asset(
+  late Image puzzleImage = Image.asset(
     AppConstants.puzzleImageAsset,
     fit: BoxFit.cover,
   );
@@ -37,6 +36,13 @@ class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
         }
 
         final gridSize = state.board.gridSize;
+
+        final config = state.levelConfig;
+
+        puzzleImage = Image.asset(
+          config?.imagePath ?? AppConstants.puzzleImageAsset,
+          fit: BoxFit.cover,
+        );
 
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -110,7 +116,7 @@ class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
     Widget tileContent = PuzzlePieceWidget(
       piece: piece,
       board: state.board.pieces,
-      image: _puzzleImage,
+      image: puzzleImage,
       gridSize: gridSize,
     );
 
@@ -179,7 +185,7 @@ class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
           feedback: PuzzleDragFeedback(
             draggedPiece: piece,
             board: state.board.pieces,
-            puzzleImage: _puzzleImage,
+            puzzleImage: puzzleImage,
             gridSize: gridSize,
             tileWidth: tileWidth,
             tileHeight: tileHeight,
