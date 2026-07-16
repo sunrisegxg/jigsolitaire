@@ -6,7 +6,7 @@ import 'package:jigsolitaire/features/game_progress/data/local_game_progress_rep
 import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/home/presentation/bloc/home_bloc.dart';
-import 'package:jigsolitaire/features/settings/data/repositories/memory_settings_repository.dart';
+import 'package:jigsolitaire/features/settings/data/repositories/shared_preferences_settings_repository.dart';
 import 'package:jigsolitaire/features/settings/domain/repositories/settings_repository.dart';
 import 'package:jigsolitaire/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -29,7 +29,7 @@ class InjectionContainer {
   static final VibrationService vibrationService = VibrationService.instance;
 
   static final SettingsRepository settingsRepository =
-      MemorySettingsRepository();
+      SharedPreferencesSettingsRepository();
 
   static final SharedPreferencesAsync _sharedPreferences =
       SharedPreferencesAsync();
