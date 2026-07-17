@@ -1,15 +1,20 @@
+import '../../../puzzle/domain/entities/puzzle_route_result.dart';
+import '../../../game_progress/domain/entities/game_progress.dart';
+
 sealed class HomeEvent {
   const HomeEvent();
 }
 
-/// Khởi tạo màn Home.
-final class HomeStarted extends HomeEvent {
-  const HomeStarted();
+final class HomePuzzleReturned extends HomeEvent {
+  const HomePuzzleReturned(this.result);
+  final PuzzleRouteResult? result;
 }
 
-/// Được gửi khi PuzzleGamePage trả về kết quả hoàn thành màn chơi.
-final class HomeLevelCompleted extends HomeEvent {
-  final int level;
+final class HomeCollectionFlightFinished extends HomeEvent {
+  const HomeCollectionFlightFinished();
+}
 
-  const HomeLevelCompleted(this.level);
+final class HomeProgressChanged extends HomeEvent {
+  const HomeProgressChanged(this.progress);
+  final GameProgress progress;
 }

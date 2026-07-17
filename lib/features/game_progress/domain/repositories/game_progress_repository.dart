@@ -55,5 +55,9 @@ abstract interface class GameProgressRepository {
     required bool isReplay,
   });
 
+  Future<GameProgress> addDebugCoins(int amount);
+
+  Future<GameProgress> advanceDebugCampaignLevel({required int maximumLevel});
+
   Future<void> clear();
 }

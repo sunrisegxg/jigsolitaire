@@ -93,7 +93,9 @@ main.dart
 - `SettingsBloc`: persistent preferences and music start/stop side effects.
 - `GameProgressBloc`: authoritative campaign completion count, shared coins, Master purchases/completions, and serialized persistence operations.
 - `PuzzleBloc`: one puzzle session and its animation/gameplay phases.
-- `HomeBloc`: currently only changes its own prototype status/level fields; the rendered home progression uses `GameProgressBloc`, so `HomeBloc` is largely redundant.
+- `HomeBloc`: derives catalog-aware Home progress from `GameProgressBloc` and coordinates collection-flight, interaction-lock, collection-switch, and staggered dealing phases.
+- `CollectionBloc`: derives locked, in-progress, completed, and coming-soon gallery entries from the catalog and persistent progress.
+- `MasterChallengeBloc`: derives sequential Master card states and coordinates purchase locking, persistence outcomes, dialogs, and typed puzzle navigation commands.
 - Stateful presentation widgets own short-lived animation controllers and completion-display counters.
 
 ## Folder structure

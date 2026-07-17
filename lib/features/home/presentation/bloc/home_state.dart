@@ -1,35 +1,47 @@
-enum HomeStatus { initial, ready }
+enum HomePhase { ready, collectionFlight, dealingNextCollection }
 
 class HomeState {
-  static const int defaultTotalLevels = 25;
-
-  final HomeStatus status;
-  final int totalLevels;
-  final int currentLevel;
-  final Set<int> completedLevels;
-
   const HomeState({
-    this.status = HomeStatus.initial,
-    this.totalLevels = defaultTotalLevels,
+    this.phase = HomePhase.ready,
+    this.displayedCollectionId,
+    this.dealIndex = 25,
+    this.completedLevelCount = 0,
     this.currentLevel = 1,
-    this.completedLevels = const <int>{},
+    this.naturalCollectionId,
+    this.allAvailableCompleted = false,
   });
 
-  bool isLevelCompleted(int level) => completedLevels.contains(level);
+  final HomePhase phase;
+  final String? displayedCollectionId;
+  final int dealIndex;
+  final int completedLevelCount;
+  final int currentLevel;
+  final String? naturalCollectionId;
+  final bool allAvailableCompleted;
 
-  bool get isAllCompleted => completedLevels.length >= totalLevels;
+  bool get interactionLocked => phase != HomePhase.ready;
 
   HomeState copyWith({
-    HomeStatus? status,
-    int? totalLevels,
+    HomePhase? phase,
+    String? displayedCollectionId,
+    bool clearDisplayedCollection = false,
+    int? dealIndex,
+    int? completedLevelCount,
     int? currentLevel,
-    Set<int>? completedLevels,
+    String? naturalCollectionId,
+    bool? allAvailableCompleted,
   }) {
     return HomeState(
-      status: status ?? this.status,
-      totalLevels: totalLevels ?? this.totalLevels,
+      phase: phase ?? this.phase,
+      displayedCollectionId: clearDisplayedCollection
+          ? null
+          : displayedCollectionId ?? this.displayedCollectionId,
+      dealIndex: dealIndex ?? this.dealIndex,
+      completedLevelCount: completedLevelCount ?? this.completedLevelCount,
       currentLevel: currentLevel ?? this.currentLevel,
-      completedLevels: completedLevels ?? this.completedLevels,
+      naturalCollectionId: naturalCollectionId ?? this.naturalCollectionId,
+      allAvailableCompleted:
+          allAvailableCompleted ?? this.allAvailableCompleted,
     );
   }
 }

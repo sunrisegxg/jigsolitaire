@@ -39,3 +39,13 @@ class MasterSessionCompleted extends GameProgressEvent {
 class GameProgressResetRequested extends GameProgressEvent {
   const GameProgressResetRequested();
 }
+
+class DebugCoinsAdded extends GameProgressEvent {
+  const DebugCoinsAdded({this.amount = 1000});
+  final int amount;
+}
+
+class DebugCampaignLevelAdvanced extends GameProgressEvent {
+  const DebugCampaignLevelAdvanced({required this.maximumLevel});
+  final int maximumLevel;
+}

@@ -13,6 +13,8 @@ class GameProgressBloc extends Bloc<GameProgressEvent, GameProgressState> {
     on<CampaignSessionCompleted>(_onCampaignCompleted);
     on<MasterLevelPurchaseRequested>(_onMasterPurchaseRequested);
     on<MasterSessionCompleted>(_onMasterCompleted);
+    on<DebugCoinsAdded>(_onDebugCoinsAdded);
+    on<DebugCampaignLevelAdvanced>(_onDebugCampaignLevelAdvanced);
     on<GameProgressResetRequested>(_onResetRequested);
   }
 
@@ -162,5 +164,23 @@ class GameProgressBloc extends Bloc<GameProgressEvent, GameProgressState> {
         clearOperationResult: true,
       ),
     );
+  }
+
+  Future<void> _onDebugCoinsAdded(
+    DebugCoinsAdded event,
+    Emitter<GameProgressState> emit,
+  ) async {
+    final progress = await _repository.addDebugCoins(event.amount);
+    emit(state.copyWith(progress: progress));
+  }
+
+  Future<void> _onDebugCampaignLevelAdvanced(
+    DebugCampaignLevelAdvanced event,
+    Emitter<GameProgressState> emit,
+  ) async {
+    final progress = await _repository.advanceDebugCampaignLevel(
+      maximumLevel: event.maximumLevel,
+    );
+    emit(state.copyWith(progress: progress));
   }
 }

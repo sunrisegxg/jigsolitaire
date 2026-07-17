@@ -4,36 +4,28 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../injection_container.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
 import '../../domain/entities/collection_item.dart';
+import '../bloc/collection_bloc.dart';
 
 class CollectionPage extends StatelessWidget {
   const CollectionPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final completed = context
-        .watch<GameProgressBloc>()
-        .state
-        .progress
-        .completedLevelCount;
-    final items = InjectionContainer.contentCatalog.campaignCollections.map((
-      definition,
-    ) {
-      final count = definition.levels
-          .where((level) => level.level <= completed)
-          .length;
-      final state = !definition.isAvailable || definition.levels.isEmpty
-          ? CollectionProgressState.comingSoon
-          : definition.isFullyAvailable && count == definition.levelCount
-          ? CollectionProgressState.completed
-          : completed >= definition.startLevel - 1
-          ? CollectionProgressState.inProgress
-          : CollectionProgressState.locked;
-      return CollectionItem(
-        definition: definition,
-        state: state,
-        completedCount: count,
-      );
-    }).toList();
+    return BlocProvider(
+      create: (_) => InjectionContainer.createCollectionBloc(
+        context.read<GameProgressBloc>(),
+      ),
+      child: const _CollectionView(),
+    );
+  }
+}
+
+class _CollectionView extends StatelessWidget {
+  const _CollectionView();
+
+  @override
+  Widget build(BuildContext context) {
+    final items = context.watch<CollectionBloc>().state.items;
 
     return Scaffold(
       body: Stack(

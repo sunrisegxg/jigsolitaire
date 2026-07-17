@@ -145,6 +145,31 @@ class LocalGameProgressRepository implements GameProgressRepository {
     });
   }
 
+  @override
+  Future<GameProgress> addDebugCoins(int amount) {
+    return _serialized(() async {
+      final progress = await load();
+      final updated = progress.copyWith(
+        coins: progress.coins + (amount < 0 ? 0 : amount),
+      );
+      await save(updated);
+      return updated;
+    });
+  }
+
+  @override
+  Future<GameProgress> advanceDebugCampaignLevel({required int maximumLevel}) {
+    return _serialized(() async {
+      final progress = await load();
+      if (progress.completedLevelCount >= maximumLevel) return progress;
+      final updated = progress.copyWith(
+        completedLevelCount: progress.completedLevelCount + 1,
+      );
+      await save(updated);
+      return updated;
+    });
+  }
+
   Future<T> _serialized<T>(Future<T> Function() operation) {
     final completer = Completer<T>();
     _mutationQueue = _mutationQueue.then((_) async {

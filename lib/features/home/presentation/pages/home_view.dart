@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter/foundation.dart';
 
 import '../../../../injection_container.dart';
-import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
-import '../../../game_progress/presentation/bloc/game_progress_state.dart';
 import '../../../puzzle/domain/entities/puzzle_route_result.dart';
 import '../../../puzzle/domain/entities/puzzle_session.dart';
 import '../../../puzzle/presentation/pages/puzzle_game_page.dart';
+import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
+import '../../../game_progress/presentation/bloc/game_progress_event.dart';
+import '../bloc/home_bloc.dart';
+import '../bloc/home_event.dart';
+import '../bloc/home_state.dart';
 import '../widgets/home_bottom_bar.dart';
 import '../widgets/home_grid.dart';
 import '../widgets/home_header.dart';
@@ -23,9 +27,6 @@ class _HomeViewState extends State<HomeView>
   final GlobalKey _collectionButtonKey = GlobalKey();
   final GlobalKey _gridKey = GlobalKey();
   late final AnimationController _collectionController;
-  String? _displayedCollectionId;
-  bool _interactionLocked = false;
-  int _dealIndex = 25;
   Offset _flightOffset = Offset.zero;
 
   @override
@@ -64,16 +65,12 @@ class _HomeViewState extends State<HomeView>
       currentLevel,
       PuzzleSessionPurpose.progress,
     );
-    if (!mounted ||
-        result is! PuzzleCompletedResult ||
-        !result.collectionCompleted) {
-      return;
-    }
-    await _runCollectionCompletion(result.completedCollectionId!);
+    if (!mounted) return;
+    context.read<HomeBloc>().add(HomePuzzleReturned(result));
   }
 
   Future<void> _confirmReplay(int level) async {
-    if (_interactionLocked) return;
+    if (context.read<HomeBloc>().state.interactionLocked) return;
     final replay = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -98,46 +95,13 @@ class _HomeViewState extends State<HomeView>
     }
   }
 
-  Future<void> _runCollectionCompletion(String collectionId) async {
-    if (_interactionLocked) return;
-    final collection = InjectionContainer.contentCatalog.collectionById(
-      collectionId,
-    );
-    if (collection == null) return;
-    setState(() {
-      _interactionLocked = true;
-      _displayedCollectionId = collectionId;
-      _dealIndex = 25;
-    });
+  Future<void> _playCollectionFlight() async {
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     _calculateFlightOffset();
     await _collectionController.forward(from: 0);
     if (!mounted) return;
-
-    final collections = InjectionContainer.contentCatalog.campaignCollections;
-    final nextIndex =
-        collections.indexWhere((item) => item.id == collectionId) + 1;
-    final next = nextIndex > 0 && nextIndex < collections.length
-        ? collections[nextIndex]
-        : null;
-    setState(() {
-      _displayedCollectionId = next?.id;
-      _dealIndex = 0;
-    });
-    if (next != null && next.isAvailable) {
-      for (var index = 1; index <= 25; index++) {
-        await Future<void>.delayed(const Duration(milliseconds: 70));
-        if (!mounted) return;
-        setState(() => _dealIndex = index);
-      }
-    }
-    if (!mounted) return;
-    setState(() {
-      _interactionLocked = false;
-      _displayedCollectionId = null;
-      _dealIndex = 25;
-    });
+    context.read<HomeBloc>().add(const HomeCollectionFlightFinished());
     _collectionController.reset();
   }
 
@@ -170,23 +134,19 @@ class _HomeViewState extends State<HomeView>
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<GameProgressBloc, GameProgressState>(
-      builder: (context, state) {
-        final progress = state.progress;
+    return BlocConsumer<HomeBloc, HomeState>(
+      listenWhen: (previous, current) =>
+          previous.phase != current.phase &&
+          current.phase == HomePhase.collectionFlight,
+      listener: (context, state) => _playCollectionFlight(),
+      builder: (context, homeState) {
         final catalog = InjectionContainer.contentCatalog;
-        final finalLevel = catalog.finalAvailableCampaignLevel;
-        final allAvailableCompleted =
-            finalLevel == null || progress.completedLevelCount >= finalLevel;
         final naturalCollection =
-            catalog.collectionForLevel(
-              allAvailableCompleted
-                  ? progress.completedLevelCount
-                  : progress.currentLevel,
-            ) ??
+            catalog.collectionById(homeState.naturalCollectionId ?? '') ??
             catalog.campaignCollections.first;
-        final collection = _displayedCollectionId == null
+        final collection = homeState.displayedCollectionId == null
             ? naturalCollection
-            : catalog.collectionById(_displayedCollectionId!) ??
+            : catalog.collectionById(homeState.displayedCollectionId!) ??
                   naturalCollection;
 
         return Scaffold(
@@ -200,7 +160,7 @@ class _HomeViewState extends State<HomeView>
               ),
               SafeArea(
                 child: AbsorbPointer(
-                  absorbing: _interactionLocked,
+                  absorbing: homeState.interactionLocked,
                   child: Column(
                     children: [
                       HomeHeader(collectionButtonKey: _collectionButtonKey),
@@ -240,11 +200,11 @@ class _HomeViewState extends State<HomeView>
                                 return HomeGrid(
                                   collection: collection,
                                   completedLevelCount:
-                                      progress.completedLevelCount,
+                                      homeState.completedLevelCount,
                                   onCompletedLevelTap: _confirmReplay,
                                   gapFactor: gapFactor,
                                   frameOpacity: gapFactor,
-                                  dealIndex: _dealIndex,
+                                  dealIndex: homeState.dealIndex,
                                 );
                               },
                             ),
@@ -252,12 +212,49 @@ class _HomeViewState extends State<HomeView>
                         ),
                       ),
                       HomeBottomBar(
-                        currentLevel: progress.currentLevel,
-                        isAllCompleted: allAvailableCompleted,
-                        onPlayPressed: allAvailableCompleted
+                        currentLevel: homeState.currentLevel,
+                        isAllCompleted: homeState.allAvailableCompleted,
+                        onPlayPressed: homeState.allAvailableCompleted
                             ? _showComingSoon
-                            : () => _openCurrentLevel(progress.currentLevel),
+                            : () => _openCurrentLevel(homeState.currentLevel),
                       ),
+                      if (kDebugMode)
+                        Padding(
+                          padding: const EdgeInsets.only(bottom: 10),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: homeState.interactionLocked
+                                    ? null
+                                    : () => context
+                                          .read<GameProgressBloc>()
+                                          .add(const DebugCoinsAdded()),
+                                icon: const Icon(Icons.monetization_on),
+                                label: const Text('+1000 Coins'),
+                              ),
+                              const SizedBox(width: 12),
+                              FilledButton.icon(
+                                onPressed: homeState.interactionLocked
+                                    ? null
+                                    : () {
+                                        final maximumLevel = InjectionContainer
+                                            .contentCatalog
+                                            .finalAvailableCampaignLevel;
+                                        if (maximumLevel != null) {
+                                          context.read<GameProgressBloc>().add(
+                                            DebugCampaignLevelAdvanced(
+                                              maximumLevel: maximumLevel,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                icon: const Icon(Icons.skip_next),
+                                label: const Text('+1 Level'),
+                              ),
+                            ],
+                          ),
+                        ),
                     ],
                   ),
                 ),

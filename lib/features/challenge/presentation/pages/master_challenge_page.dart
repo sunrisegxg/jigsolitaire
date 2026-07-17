@@ -3,341 +3,287 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../injection_container.dart';
 import '../../../content/domain/entities/master_content.dart';
-import '../../../game_progress/domain/repositories/game_progress_repository.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
-import '../../../game_progress/presentation/bloc/game_progress_event.dart';
-import '../../../game_progress/presentation/bloc/game_progress_state.dart';
 import '../../../puzzle/domain/entities/puzzle_route_result.dart';
-import '../../../puzzle/domain/entities/puzzle_session.dart';
 import '../../../puzzle/presentation/pages/puzzle_game_page.dart';
 import '../../../puzzle/presentation/widgets/level_clear/coin_wallet.dart';
+import '../bloc/master_challenge_bloc.dart';
+import '../bloc/master_challenge_event.dart';
+import '../bloc/master_challenge_state.dart';
 
-enum MasterCardState { locked, purchasable, unlocked, completed, comingSoon }
-
-class MasterChallengePage extends StatefulWidget {
+class MasterChallengePage extends StatelessWidget {
   const MasterChallengePage({super.key});
+
   @override
-  State<MasterChallengePage> createState() => _MasterChallengePageState();
+  Widget build(BuildContext context) {
+    return BlocProvider(
+      create: (_) => InjectionContainer.createMasterChallengeBloc(
+        context.read<GameProgressBloc>(),
+      ),
+      child: const _MasterChallengeView(),
+    );
+  }
 }
 
-class _MasterChallengePageState extends State<MasterChallengePage> {
-  int? _purchasingId;
+class _MasterChallengeView extends StatelessWidget {
+  const _MasterChallengeView();
 
-  MasterCardState _stateFor(
-    MasterLevelDefinition level,
-    GameProgressState state,
-  ) {
-    final progress = state.progress;
-    if (!level.isAvailable) {
-      return MasterCardState.comingSoon;
-    }
-    if (progress.completedMasterLevelIds.contains(level.id)) {
-      return MasterCardState.completed;
-    }
-    if (progress.purchasedMasterLevelIds.contains(level.id)) {
-      return MasterCardState.unlocked;
-    }
-    if (level.id == 1 ||
-        progress.completedMasterLevelIds.contains(level.id - 1)) {
-      return MasterCardState.purchasable;
-    }
-    return MasterCardState.locked;
-  }
-
-  Future<void> _tapLevel(
-    MasterLevelDefinition level,
-    MasterCardState cardState,
-  ) async {
-    switch (cardState) {
-      case MasterCardState.purchasable:
-        await _confirmPurchase(level);
-        return;
-      case MasterCardState.unlocked:
-        await _openLevel(level, PuzzleSessionPurpose.progress);
-        return;
-      case MasterCardState.completed:
-        await _openLevel(level, PuzzleSessionPurpose.replay);
-        return;
-      case MasterCardState.locked:
-      case MasterCardState.comingSoon:
-        return;
-    }
-  }
-
-  Future<void> _confirmPurchase(MasterLevelDefinition level) async {
-    if (_purchasingId != null) return;
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text('Unlock Master Level ${level.id}?'),
-        content: Text(
-          'Spend ${level.unlockCost} coins to unlock this level permanently?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancel'),
+  Future<void> _handleAction(BuildContext context, MasterAction action) async {
+    final bloc = context.read<MasterChallengeBloc>();
+    switch (action.type) {
+      case MasterActionType.confirmPurchase:
+        final level = action.level!;
+        final confirmed = await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text('Unlock Master Level ${level.id}?'),
+            content: Text(
+              'Spend ${level.unlockCost} coins to unlock this level permanently?',
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context, false),
+                child: const Text('Cancel'),
+              ),
+              FilledButton(
+                onPressed: () => Navigator.pop(context, true),
+                child: const Text('Unlock'),
+              ),
+            ],
           ),
-          FilledButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Unlock'),
+        );
+        if (!context.mounted) return;
+        if (confirmed == true) {
+          bloc.add(MasterPurchaseConfirmed(level));
+        } else {
+          bloc.add(const MasterActionHandled());
+        }
+        return;
+      case MasterActionType.openPuzzle:
+        bloc.add(const MasterActionHandled());
+        final config = InjectionContainer.puzzleLevelConfigService.master(
+          id: action.level!.id,
+          purpose: action.purpose!,
+        );
+        await Navigator.push<PuzzleRouteResult>(
+          context,
+          MaterialPageRoute(builder: (_) => PuzzleGamePage(config: config)),
+        );
+        return;
+      case MasterActionType.showMessage:
+        await showDialog<void>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text(action.title!),
+            content: Text(action.message!),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('OK'),
+              ),
+            ],
           ),
-        ],
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    setState(() => _purchasingId = level.id);
-    final bloc = context.read<GameProgressBloc>();
-    final prerequisiteCompleted =
-        level.id == 1 ||
-        bloc.state.progress.completedMasterLevelIds.contains(level.id - 1);
-    bloc.add(
-      MasterLevelPurchaseRequested(
-        levelId: level.id,
-        unlockCost: level.unlockCost,
-        isAvailable: level.isAvailable,
-        prerequisiteCompleted: prerequisiteCompleted,
-      ),
-    );
-    final result = await bloc.stream.firstWhere(
-      (state) =>
-          state.operationStatus == ProgressOperationStatus.success ||
-          state.operationStatus == ProgressOperationStatus.failure,
-    );
-    if (!mounted) return;
-    setState(() => _purchasingId = null);
-    final outcome = result.operationResult;
-    if (result.operationStatus == ProgressOperationStatus.failure) {
-      _showMessage(
-        'Purchase failed',
-        result.errorMessage ?? 'Please try again.',
-      );
-    } else if (outcome is MasterPurchaseOutcome &&
-        outcome.status == MasterPurchaseStatus.insufficientCoins) {
-      _showMessage(
-        'Not Enough Coins',
-        'You do not have enough coins to unlock this Master Challenge.',
-      );
+        );
+        if (context.mounted) {
+          bloc.add(const MasterActionHandled());
+        }
+        return;
     }
-  }
-
-  Future<void> _openLevel(
-    MasterLevelDefinition level,
-    PuzzleSessionPurpose purpose,
-  ) async {
-    final config = InjectionContainer.puzzleLevelConfigService.master(
-      id: level.id,
-      purpose: purpose,
-    );
-    await Navigator.push<PuzzleRouteResult>(
-      context,
-      MaterialPageRoute(builder: (_) => PuzzleGamePage(config: config)),
-    );
-  }
-
-  void _showMessage(String title, String message) {
-    showDialog<void>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
-          ),
-        ],
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    final progressState = context.watch<GameProgressBloc>().state;
-    final levels = InjectionContainer.contentCatalog.masterLevels;
-    final allCompleted = levels
-        .where((level) => level.isAvailable)
-        .every(
-          (level) =>
-              progressState.progress.completedMasterLevelIds.contains(level.id),
-        );
-    return Scaffold(
-      body: Stack(
-        children: [
-          Positioned.fill(
-            child: Image.asset(
-              'assets/images/background.png',
-              fit: BoxFit.cover,
-            ),
-          ),
-          Positioned(
-            top: 50,
-            right: 20,
-            child: CoinWallet(coins: progressState.progress.coins),
-          ),
-          SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 24,
-                  ),
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: IconButton(
-                          onPressed: _purchasingId == null
-                              ? () => Navigator.pop(context)
-                              : null,
-                          icon: const Icon(
-                            Icons.close,
-                            color: Color(0xFF056E45),
-                            size: 38,
-                          ),
-                        ),
-                      ),
-                      const Text(
-                        'Master Challenge',
-                        style: TextStyle(
-                          color: Color(0xFF056E45),
-                          fontSize: 32,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
+    return BlocConsumer<MasterChallengeBloc, MasterChallengeState>(
+      listenWhen: (previous, current) =>
+          previous.actionId != current.actionId && current.action != null,
+      listener: (context, state) => _handleAction(context, state.action!),
+      builder: (context, state) {
+        return Scaffold(
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/background.png',
+                  fit: BoxFit.cover,
                 ),
-                if (allCompleted)
-                  const Padding(
-                    padding: EdgeInsets.all(12),
-                    child: Column(
-                      children: [
-                        Text(
-                          'All Master Challenges completed',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
+              ),
+              Positioned(
+                top: 50,
+                right: 20,
+                child: CoinWallet(coins: state.progress.coins),
+              ),
+              SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 24,
+                      ),
+                      child: Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Align(
+                            alignment: Alignment.centerLeft,
+                            child: IconButton(
+                              onPressed: state.purchasingLevelId == null
+                                  ? () => Navigator.pop(context)
+                                  : null,
+                              icon: const Icon(
+                                Icons.close,
+                                color: Color(0xFF056E45),
+                                size: 38,
+                              ),
+                            ),
                           ),
-                        ),
-                        Text('More challenges are coming soon'),
-                      ],
+                          const Text(
+                            'Master Challenge',
+                            style: TextStyle(
+                              color: Color(0xFF056E45),
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                Expanded(
-                  child: GridView.builder(
-                    padding: const EdgeInsets.all(24),
-                    itemCount: levels.length,
-                    gridDelegate:
-                        const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 3,
-                          crossAxisSpacing: 8,
-                          mainAxisSpacing: 12,
-                          childAspectRatio: .62,
+                    if (state.allAvailableCompleted)
+                      const Padding(
+                        padding: EdgeInsets.all(12),
+                        child: Column(
+                          children: [
+                            Text(
+                              'All Master Challenges completed',
+                              style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            Text('More challenges are coming soon'),
+                          ],
                         ),
-                    itemBuilder: (context, index) {
-                      final level = levels[index];
-                      final cardState = _stateFor(level, progressState);
-                      return _MasterCard(
-                        level: level,
-                        state: cardState,
-                        busy: _purchasingId == level.id,
-                        onTap: _purchasingId == null
-                            ? () => _tapLevel(level, cardState)
-                            : null,
-                      );
-                    },
-                  ),
+                      ),
+                    Expanded(
+                      child: GridView.builder(
+                        padding: const EdgeInsets.all(24),
+                        itemCount: state.cards.length,
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 12,
+                              childAspectRatio: .62,
+                            ),
+                        itemBuilder: (context, index) {
+                          final card = state.cards[index];
+                          return _MasterCard(
+                            data: card,
+                            busy: state.purchasingLevelId == card.level.id,
+                            onTap: state.purchasingLevelId == null
+                                ? () => context.read<MasterChallengeBloc>().add(
+                                    MasterCardTapped(card.level.id),
+                                  )
+                                : null,
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
 
 class _MasterCard extends StatelessWidget {
   const _MasterCard({
-    required this.level,
-    required this.state,
+    required this.data,
     required this.busy,
     required this.onTap,
   });
-  final MasterLevelDefinition level;
-  final MasterCardState state;
+
+  final MasterCardViewData data;
   final bool busy;
   final VoidCallback? onTap;
+  MasterLevelDefinition get level => data.level;
 
   @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          Image.asset(level.imageAsset, fit: BoxFit.cover),
-          if (state == MasterCardState.locked ||
-              state == MasterCardState.comingSoon)
-            ColoredBox(color: Colors.black.withValues(alpha: .55)),
-          Positioned(
-            top: 6,
-            left: 6,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: Colors.black54,
-                borderRadius: BorderRadius.circular(6),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
-                child: Text(
-                  'Level ${level.id}',
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            Image.asset(level.imageAsset, fit: BoxFit.cover),
+            if (data.state == MasterCardState.locked ||
+                data.state == MasterCardState.comingSoon)
+              ColoredBox(color: Colors.black.withValues(alpha: .55)),
+            Positioned(
+              top: 6,
+              left: 6,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 6,
+                    vertical: 3,
+                  ),
+                  child: Text(
+                    'Level ${level.id}',
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-          if (state == MasterCardState.locked)
-            const Center(
-              child: Icon(Icons.lock, size: 42, color: Colors.white),
-            ),
-          if (busy)
-            const Center(child: CircularProgressIndicator(color: Colors.white)),
-          Positioned(
-            left: 6,
-            right: 6,
-            bottom: 6,
-            child: DecoratedBox(
-              decoration: BoxDecoration(
-                color: const Color(0xFF056E45),
-                borderRadius: BorderRadius.circular(8),
+            if (data.state == MasterCardState.locked)
+              const Center(
+                child: Icon(Icons.lock, size: 42, color: Colors.white),
               ),
-              child: Padding(
-                padding: const EdgeInsets.all(6),
-                child: Text(
-                  _label,
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold,
+            if (busy)
+              const Center(
+                child: CircularProgressIndicator(color: Colors.white),
+              ),
+            Positioned(
+              left: 6,
+              right: 6,
+              bottom: 6,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF056E45),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Text(
+                    _label,
+                    textAlign: TextAlign.center,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
                   ),
                 ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
 
-  String get _label => switch (state) {
+  String get _label => switch (data.state) {
     MasterCardState.locked => 'Locked',
     MasterCardState.purchasable => '${level.unlockCost} coins',
     MasterCardState.unlocked => 'Play',

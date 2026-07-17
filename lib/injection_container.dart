@@ -12,6 +12,8 @@ import 'package:jigsolitaire/features/settings/presentation/bloc/settings_bloc.d
 import 'package:shared_preferences/shared_preferences.dart';
 import 'features/content/data/local_game_content_catalog.dart';
 import 'features/content/domain/game_content_catalog.dart';
+import 'features/challenge/presentation/bloc/master_challenge_bloc.dart';
+import 'features/collection/presentation/bloc/collection_bloc.dart';
 import 'features/puzzle/domain/services/puzzle_level_config_service.dart';
 
 import 'features/puzzle/domain/services/puzzle_engine.dart';
@@ -71,8 +73,21 @@ class InjectionContainer {
   }
 
   // home bloc
-  static HomeBloc createHomeBloc() {
-    return HomeBloc();
+  static HomeBloc createHomeBloc(GameProgressBloc progressBloc) {
+    return HomeBloc(catalog: contentCatalog, progressBloc: progressBloc);
+  }
+
+  static MasterChallengeBloc createMasterChallengeBloc(
+    GameProgressBloc progressBloc,
+  ) {
+    return MasterChallengeBloc(
+      catalog: contentCatalog,
+      progressBloc: progressBloc,
+    );
+  }
+
+  static CollectionBloc createCollectionBloc(GameProgressBloc progressBloc) {
+    return CollectionBloc(catalog: contentCatalog, progressBloc: progressBloc);
   }
 
   // game puzzle bloc
