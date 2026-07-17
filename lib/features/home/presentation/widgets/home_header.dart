@@ -40,7 +40,7 @@ class HomeHeader extends StatelessWidget {
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8),
-                  color: const Color(0xFFADAEAF),
+                  color: const Color(0xFFF3F3F3),
                   border: Border.all(color: const Color(0xFFACAEAF)),
                   boxShadow: [
                     BoxShadow(
@@ -50,7 +50,7 @@ class HomeHeader extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Image.asset('assets/images/card.png'),
+                child: Image.asset('assets/images/card.jpg'),
               ),
             ),
             const Spacer(),
