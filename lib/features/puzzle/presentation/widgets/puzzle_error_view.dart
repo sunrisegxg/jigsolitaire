@@ -1,11 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PuzzleErrorView extends StatelessWidget {
-  const PuzzleErrorView({
-    required this.onRetry,
-    this.message,
-    super.key,
-  });
+  const PuzzleErrorView({required this.onRetry, this.message, super.key});
 
   final String? message;
   final VoidCallback onRetry;
@@ -18,14 +14,10 @@ class PuzzleErrorView extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Icon(
-              Icons.error_outline,
-              color: Colors.white,
-              size: 56,
-            ),
+            const Icon(Icons.error_outline, color: Colors.white, size: 56),
             const SizedBox(height: 16),
             const Text(
-              'Không thể tải màn chơi',
+              'Cannot load puzzle',
               textAlign: TextAlign.center,
               style: TextStyle(
                 color: Colors.white,
@@ -38,17 +30,14 @@ class PuzzleErrorView extends StatelessWidget {
               Text(
                 message!,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
+                style: const TextStyle(color: Colors.white70, fontSize: 13),
               ),
             ],
             const SizedBox(height: 20),
             ElevatedButton.icon(
               onPressed: onRetry,
               icon: const Icon(Icons.refresh),
-              label: const Text('THỬ LẠI'),
+              label: const Text('Retry'),
             ),
           ],
         ),

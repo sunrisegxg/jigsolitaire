@@ -30,47 +30,53 @@ class LevelClearRewardPanel extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        FadeTransition(
-          opacity: rewardOpacity,
-          child: ScaleTransition(
-            scale: rewardScale,
-            child: Container(
-              key: rewardKey,
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
-              decoration: BoxDecoration(
-                color: const Color(0xB3000000),
-                borderRadius: BorderRadius.circular(22),
-                border: Border.all(color: const Color(0xFFFFD54F), width: 1.5),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.monetization_on,
-                    color: Color(0xFFFFC107),
-                    size: 16,
+        if (rewardCoins > 0)
+          FadeTransition(
+            opacity: rewardOpacity,
+            child: ScaleTransition(
+              scale: rewardScale,
+              child: Container(
+                key: rewardKey,
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 14,
+                  vertical: 7,
+                ),
+                decoration: BoxDecoration(
+                  color: const Color(0xB3000000),
+                  borderRadius: BorderRadius.circular(22),
+                  border: Border.all(
+                    color: const Color(0xFFFFD54F),
+                    width: 1.5,
                   ),
-                  const SizedBox(width: 5),
-                  Text(
-                    '+$rewardCoins',
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w900,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(
+                      Icons.monetization_on,
+                      color: Color(0xFFFFC107),
+                      size: 16,
                     ),
-                  ),
-                ],
+                    const SizedBox(width: 5),
+                    Text(
+                      '+$rewardCoins',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 12,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         const SizedBox(height: 10),
         FadeTransition(
           opacity: buttonOpacity,
           child: SlideTransition(
             position: buttonSlide,
             child: SizedBox(
-              width: 150,
               height: 70,
               child: DecoratedBox(
                 decoration: BoxDecoration(
@@ -107,7 +113,7 @@ class LevelClearRewardPanel extends StatelessWidget {
 
                     padding: const EdgeInsets.symmetric(
                       vertical: 12,
-                      horizontal: 16,
+                      horizontal: 32,
                     ),
 
                     shape: RoundedRectangleBorder(
@@ -115,12 +121,12 @@ class LevelClearRewardPanel extends StatelessWidget {
                     ),
                   ),
                   child: Text(
-                    'NEXT',
+                    rewardCoins > 0 ? 'NEXT' : 'CONTINUE',
                     maxLines: 1,
                     style: GoogleFonts.poppins(
                       textStyle: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: rewardCoins > 0 ? 32 : 24,
                         fontWeight: FontWeight.bold,
                         height: 1.2,
                       ),

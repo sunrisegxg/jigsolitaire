@@ -35,9 +35,11 @@ class PuzzleDragFeedback extends StatelessWidget {
         child: Stack(
           clipBehavior: Clip.none,
           children: groupPieces.map((piece) {
-            final dx = (piece.currentIndex % gridSize) -
+            final dx =
+                (piece.currentIndex % gridSize) -
                 (draggedPiece.currentIndex % gridSize);
-            final dy = (piece.currentIndex ~/ gridSize) -
+            final dy =
+                (piece.currentIndex ~/ gridSize) -
                 (draggedPiece.currentIndex ~/ gridSize);
 
             return Positioned(

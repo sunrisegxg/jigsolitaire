@@ -1,11 +1,6 @@
 import '../../domain/entities/app_settings.dart';
 
-enum SettingsStatus {
-  initial,
-  loading,
-  ready,
-  failure,
-}
+enum SettingsStatus { initial, loading, ready, failure }
 
 class SettingsState {
   final SettingsStatus status;

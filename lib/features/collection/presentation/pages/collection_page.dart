@@ -1,211 +1,206 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:jigsolitaire/core/services/interaction_service.dart';
-import 'package:jigsolitaire/features/collection/domain/entities/collection_item.dart';
 
-class CollectionPage extends StatefulWidget {
+import '../../../../injection_container.dart';
+import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
+import '../../domain/entities/collection_item.dart';
+
+class CollectionPage extends StatelessWidget {
   const CollectionPage({super.key});
 
   @override
-  State<CollectionPage> createState() => _CollectionPageState();
-}
-
-class _CollectionPageState extends State<CollectionPage> {
-  final collections = [
-    CollectionItem(
-      image: 'assets/images/italy.jpg',
-      title: '1-25',
-      isUnlocked: true,
-    ),
-    CollectionItem(title: '26-50', isUnlocked: false),
-    CollectionItem(title: '51-75', isUnlocked: false),
-    CollectionItem(title: '76-100', isUnlocked: false),
-    CollectionItem(title: '101-125', isUnlocked: false),
-    CollectionItem(title: '126-150', isUnlocked: false),
-  ];
-  @override
   Widget build(BuildContext context) {
+    final completed = context
+        .watch<GameProgressBloc>()
+        .state
+        .progress
+        .completedLevelCount;
+    final items = InjectionContainer.contentCatalog.campaignCollections.map((
+      definition,
+    ) {
+      final count = definition.levels
+          .where((level) => level.level <= completed)
+          .length;
+      final state = !definition.isAvailable || definition.levels.isEmpty
+          ? CollectionProgressState.comingSoon
+          : definition.isFullyAvailable && count == definition.levelCount
+          ? CollectionProgressState.completed
+          : completed >= definition.startLevel - 1
+          ? CollectionProgressState.inProgress
+          : CollectionProgressState.locked;
+      return CollectionItem(
+        definition: definition,
+        state: state,
+        completedCount: count,
+      );
+    }).toList();
+
     return Scaffold(
       body: Stack(
         children: [
           Positioned.fill(
             child: Image.asset(
-              'assets/images/background.png', // ảnh nền của bạn
+              'assets/images/background.png',
               fit: BoxFit.cover,
             ),
           ),
           SafeArea(
-            child: Padding(
-              padding: EdgeInsets.only(
-                top: MediaQuery.of(context).size.height * 0.04,
-              ),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  Padding(
-                    padding: EdgeInsets.only(
-                      left: MediaQuery.of(context).size.width * 0.025,
-                      right: MediaQuery.of(context).size.width * 0.025,
-                      bottom: MediaQuery.of(context).size.height * 0.025,
-                    ),
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Align(
-                          alignment: Alignment.centerLeft,
-                          child: IconButton(
-                            onPressed: () async {
-                              Navigator.pop(context);
-                              await context.read<InteractionService>().tap();
-                            },
-                            icon: const Icon(
-                              Icons.close,
-                              color: Color(0xFF056E45),
-                              size: 40,
-                            ),
-                          ),
-                        ),
-
-                        const Text(
-                          'Collection',
-                          style: TextStyle(
+            child: Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 20,
+                  ),
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      Align(
+                        alignment: Alignment.centerLeft,
+                        child: IconButton(
+                          onPressed: () => Navigator.pop(context),
+                          icon: const Icon(
+                            Icons.close,
+                            size: 36,
                             color: Color(0xFF056E45),
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
                           ),
                         ),
-                      ],
-                    ),
+                      ),
+                      const Text(
+                        'Collection',
+                        style: TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF056E45),
+                        ),
+                      ),
+                    ],
                   ),
-                  Expanded(
-                    child: GridView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      itemCount: collections.length,
-                      gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            crossAxisSpacing: 16,
-                            mainAxisSpacing: 20,
-                            childAspectRatio: 0.65,
-                          ),
-                      itemBuilder: (context, index) {
-                        final item = collections[index];
-
-                        return GestureDetector(
-                          onTap: () async {
-                            await context.read<InteractionService>().tap();
-                          },
-                          child: Stack(
-                            children: [
-                              Container(
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF748A84),
-                                  borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(
-                                    color: Colors.green.shade900,
-                                    width: 2,
-                                  ),
-                                ),
-                                child: ClipRRect(
-                                  borderRadius: BorderRadius.circular(14),
-                                  child: item.isUnlocked
-                                      ? Stack(
-                                          fit: StackFit.expand,
-                                          children: [
-                                            Image.asset(
-                                              item.image!,
-                                              fit: BoxFit.cover,
-                                            ),
-
-                                            // ⭐ overlay tối nhẹ
-                                            Container(
-                                              decoration: BoxDecoration(
-                                                gradient: LinearGradient(
-                                                  begin: Alignment.topCenter,
-                                                  end: Alignment.bottomCenter,
-                                                  colors: [
-                                                    Colors.black.withValues(
-                                                      alpha: 0.0,
-                                                    ),
-                                                    Colors.black.withValues(
-                                                      alpha: 0.4,
-                                                    ),
-                                                  ],
-                                                ),
-                                              ),
-                                            ),
-
-                                            Positioned(
-                                              top: 12,
-                                              left: 12,
-                                              child: Container(
-                                                padding:
-                                                    const EdgeInsets.symmetric(
-                                                      horizontal: 8,
-                                                      vertical: 4,
-                                                    ),
-                                                decoration: BoxDecoration(
-                                                  color: Colors.black
-                                                      .withValues(alpha: 0.4),
-                                                  borderRadius:
-                                                      BorderRadius.circular(8),
-                                                ),
-                                                child: const Text(
-                                                  'Italy',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 20,
-                                                  ),
-                                                ),
-                                              ),
-                                            ),
-                                          ],
-                                        )
-                                      : Center(
-                                          child: Icon(
-                                            Icons.lock,
-                                            color: Colors.white,
-                                            size: 70,
-                                          ),
-                                        ),
-                                ),
-                              ),
-
-                              Positioned(
-                                bottom: 0,
-                                left: 40,
-                                right: 40,
-                                child: Container(
-                                  height: 40,
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.shade900,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  alignment: Alignment.center,
-                                  child: Text(
-                                    item.title,
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 18,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                    ),
+                ),
+                Expanded(
+                  child: GridView.builder(
+                    padding: const EdgeInsets.all(20),
+                    itemCount: items.length,
+                    gridDelegate:
+                        const SliverGridDelegateWithFixedCrossAxisCount(
+                          crossAxisCount: 2,
+                          crossAxisSpacing: 14,
+                          mainAxisSpacing: 14,
+                          childAspectRatio: .75,
+                        ),
+                    itemBuilder: (context, index) =>
+                        _CollectionCard(item: items[index]),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ],
       ),
     );
   }
+}
+
+class _CollectionCard extends StatelessWidget {
+  const _CollectionCard({required this.item});
+  final CollectionItem item;
+
+  @override
+  Widget build(BuildContext context) {
+    final completed = item.state == CollectionProgressState.completed;
+    return GestureDetector(
+      onTap: completed
+          ? () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => _CollectionPreview(item: item)),
+            )
+          : null,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(12),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            if (completed || item.state == CollectionProgressState.inProgress)
+              Image.asset(
+                item.definition.collectionImageAsset,
+                fit: BoxFit.cover,
+              )
+            else
+              Image.asset('assets/images/backcard2.jpg', fit: BoxFit.cover),
+            if (!completed)
+              ColoredBox(color: Colors.black.withValues(alpha: .42)),
+            Positioned(
+              left: 10,
+              right: 10,
+              bottom: 10,
+              child: DecoratedBox(
+                decoration: BoxDecoration(
+                  color: Colors.black54,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        item.definition.title,
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                      Text(_label, style: const TextStyle(color: Colors.white)),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            if (item.state == CollectionProgressState.locked)
+              const Center(
+                child: Icon(Icons.lock, size: 46, color: Colors.white),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  String get _label => switch (item.state) {
+    CollectionProgressState.locked => 'Locked',
+    CollectionProgressState.inProgress =>
+      '${item.completedCount}/${item.definition.levelCount}',
+    CollectionProgressState.completed => 'Completed',
+    CollectionProgressState.comingSoon => 'Coming soon',
+  };
+}
+
+class _CollectionPreview extends StatelessWidget {
+  const _CollectionPreview({required this.item});
+  final CollectionItem item;
+  @override
+  Widget build(BuildContext context) => Scaffold(
+    backgroundColor: Colors.black,
+    body: Stack(
+      children: [
+        Positioned.fill(
+          child: InteractiveViewer(
+            child: Center(
+              child: Image.asset(
+                item.definition.collectionImageAsset,
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+        SafeArea(
+          child: IconButton(
+            onPressed: () => Navigator.pop(context),
+            icon: const Icon(Icons.close, color: Colors.white, size: 36),
+          ),
+        ),
+      ],
+    ),
+  );
 }

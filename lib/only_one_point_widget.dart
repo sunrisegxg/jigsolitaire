@@ -49,11 +49,15 @@ class OnlyOnePointerRecognizerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return RawGestureDetector(gestures: <Type, GestureRecognizerFactory>{
-      OnlyOnePointerRecognizer:
-          GestureRecognizerFactoryWithHandlers<OnlyOnePointerRecognizer>(
+    return RawGestureDetector(
+      gestures: <Type, GestureRecognizerFactory>{
+        OnlyOnePointerRecognizer:
+            GestureRecognizerFactoryWithHandlers<OnlyOnePointerRecognizer>(
               () => OnlyOnePointerRecognizer(),
-              (OnlyOnePointerRecognizer instance) {})
-    }, child: child);
+              (OnlyOnePointerRecognizer instance) {},
+            ),
+      },
+      child: child,
+    );
   }
 }

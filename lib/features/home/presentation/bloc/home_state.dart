@@ -1,7 +1,4 @@
-enum HomeStatus {
-  initial,
-  ready,
-}
+enum HomeStatus { initial, ready }
 
 class HomeState {
   static const int defaultTotalLevels = 25;

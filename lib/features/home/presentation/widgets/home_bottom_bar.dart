@@ -150,18 +150,20 @@ class HomeBottomBar extends StatelessWidget {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Text(
-                    'PLAY',
+                    isAllCompleted ? 'ALL AVAILABLE LEVELS COMPLETED' : 'PLAY',
                     style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
+                      textStyle: TextStyle(
                         color: Colors.white,
-                        fontSize: 32,
+                        fontSize: isAllCompleted ? 16 : 32,
                         fontWeight: FontWeight.bold,
                         height: 1,
                       ),
                     ),
                   ),
                   Text(
-                    'LEVEL $currentLevel',
+                    isAllCompleted
+                        ? 'More levels are coming soon'
+                        : 'LEVEL $currentLevel',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         color: Colors.white,

@@ -1,4 +1,5 @@
 import 'puzzle_mode.dart';
+import 'puzzle_session.dart';
 
 class PuzzleLevelConfig {
   const PuzzleLevelConfig({
@@ -7,6 +8,7 @@ class PuzzleLevelConfig {
     required this.imagePath,
     this.pageNumber,
     this.positionInPage,
+    required this.session,
   });
 
   /// Số màn trong campaign.
@@ -26,12 +28,17 @@ class PuzzleLevelConfig {
 
   /// Vị trí của màn trong trang, từ 1–25.
   final int? positionInPage;
+  final PuzzleSession session;
 
-  int get gridSize => mode.gridSize;
+  int get gridSize => session is MasterPuzzleSession
+      ? (session as MasterPuzzleSession).level.rows
+      : mode.gridSize;
 
   int get pieceCount => mode.pieceCount;
 
-  int get rewardCoins => mode.rewardCoins;
+  int get rewardCoins => !session.isReplay && session is CampaignPuzzleSession
+      ? (session as CampaignPuzzleSession).level.rewardCoins
+      : 0;
 
   bool get isNormal => mode == PuzzleMode.normal;
 

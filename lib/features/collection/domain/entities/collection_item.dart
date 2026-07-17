@@ -1,7 +1,14 @@
-class CollectionItem {
-  final String? image;
-  final String title;
-  final bool isUnlocked;
+import '../../../content/domain/entities/campaign_content.dart';
 
-  CollectionItem({this.image, required this.title, required this.isUnlocked});
+enum CollectionProgressState { locked, inProgress, completed, comingSoon }
+
+class CollectionItem {
+  const CollectionItem({
+    required this.definition,
+    required this.state,
+    required this.completedCount,
+  });
+  final CampaignCollectionDefinition definition;
+  final CollectionProgressState state;
+  final int completedCount;
 }

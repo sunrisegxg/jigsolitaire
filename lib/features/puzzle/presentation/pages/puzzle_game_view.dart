@@ -7,10 +7,15 @@ import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:jigsolitaire/core/services/interaction_service.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
+import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_state.dart';
+import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_route_result.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_session.dart';
 import 'package:jigsolitaire/features/puzzle/presentation/widgets/setting/game_setting_dialog.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../injection_container.dart';
 import '../bloc/puzzle_bloc.dart';
 import '../bloc/puzzle_event.dart';
 import '../bloc/puzzle_state.dart';
@@ -313,7 +318,6 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
 
   void _onRestartPressed() {
     _resetPuzzle();
-    
   }
 
   Future<void> _showSettingsDialog() async {
@@ -376,6 +380,12 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
   }
 
   void _onNextPressed() async {
+    if (_rewardCoins == 0) {
+      if (_nextButtonLocked) return;
+      setState(() => _nextButtonLocked = true);
+      await _finishLevel();
+      return;
+    }
     if (_nextButtonLocked || !_calculateCoinPositions()) return;
 
     _stopContinuousConfetti();
@@ -460,25 +470,83 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
 
     if (!mounted) return;
 
-    _finishLevel();
+    await _finishLevel();
   }
 
-  void _finishLevel() {
+  Future<void> _finishLevel() async {
     final levelConfig = context.read<PuzzleBloc>().state.levelConfig;
-    print('Completed level: ${levelConfig?.level}');
-
     if (levelConfig == null) {
       return;
     }
+    final session = levelConfig.session;
+    final progressBloc = context.read<GameProgressBloc>();
+    if (session is CampaignPuzzleSession) {
+      progressBloc.add(
+        CampaignSessionCompleted(
+          level: session.level.level,
+          rewardCoins: session.level.rewardCoins,
+          isReplay: session.isReplay,
+        ),
+      );
+    } else if (session is MasterPuzzleSession) {
+      progressBloc.add(
+        MasterSessionCompleted(
+          levelId: session.level.id,
+          isReplay: session.isReplay,
+        ),
+      );
+    }
 
-    context.read<GameProgressBloc>().add(
-      LevelCompletedAndRewarded(
-        level: levelConfig.level,
-        rewardCoins: _rewardCoins,
+    final operationState = await progressBloc.stream.firstWhere(
+      (state) =>
+          state.operationStatus == ProgressOperationStatus.success ||
+          state.operationStatus == ProgressOperationStatus.failure,
+    );
+    if (!mounted) return;
+    if (operationState.operationStatus == ProgressOperationStatus.failure) {
+      setState(() => _nextButtonLocked = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            operationState.errorMessage ?? 'Could not save progress.',
+          ),
+        ),
+      );
+      return;
+    }
+
+    var firstCompletion = false;
+    var collectionCompleted = false;
+    String? completedCollectionId;
+    if (session is CampaignPuzzleSession) {
+      final outcome = operationState.operationResult;
+      if (outcome is CampaignCompletionOutcome) {
+        firstCompletion = outcome.firstCompletion;
+      }
+      final collection = InjectionContainer.contentCatalog.collectionForLevel(
+        session.level.level,
+      );
+      collectionCompleted =
+          firstCompletion &&
+          collection != null &&
+          collection.isFullyAvailable &&
+          session.level.level == collection.endLevel;
+      completedCollectionId = collectionCompleted ? collection.id : null;
+    } else if (session is MasterPuzzleSession) {
+      final outcome = operationState.operationResult;
+      if (outcome is MasterCompletionOutcome) {
+        firstCompletion = outcome.firstCompletion;
+      }
+    }
+
+    Navigator.of(context).pop(
+      PuzzleCompletedResult(
+        session: session,
+        firstCompletion: firstCompletion,
+        collectionCompleted: collectionCompleted,
+        completedCollectionId: completedCollectionId,
       ),
     );
-
-    Navigator.of(context).pop();
   }
 
   // void _goToNextLevel() {

@@ -38,7 +38,8 @@ dependencies:
   vibration: ^3.1.8
   just_audio: ^0.10.6
   audio_session: ^0.2.4
-  flutter_soloud: ^3.5.4
+  flutter_soloud:
+    ^3.5.4
 
     #bloc
   flutter_bloc: ^9.1.0
@@ -69,6 +70,8 @@ flutter:
   # To add assets to your application, add an assets section, like this:
   assets:
     - assets/images/puzzles/campaign/
+    - assets/images/puzzles/master_challenge/
+    - assets/images/collections/
     - assets/images/
     - assets/audio/
     - assets/

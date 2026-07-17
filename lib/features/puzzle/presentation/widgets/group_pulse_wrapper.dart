@@ -63,8 +63,12 @@ class _GroupPulseWrapperState extends State<GroupPulseWrapper>
         .where((piece) => piece.groupId == widget.piece.groupId)
         .toList();
 
-    final xs = groupPieces.map((piece) => piece.currentIndex % widget.gridSize).toList();
-    final ys = groupPieces.map((piece) => piece.currentIndex ~/ widget.gridSize).toList();
+    final xs = groupPieces
+        .map((piece) => piece.currentIndex % widget.gridSize)
+        .toList();
+    final ys = groupPieces
+        .map((piece) => piece.currentIndex ~/ widget.gridSize)
+        .toList();
 
     final minX = xs.reduce((a, b) => a < b ? a : b).toDouble();
     final maxX = xs.reduce((a, b) => a > b ? a : b).toDouble();

@@ -31,9 +31,6 @@ class SettingsBloc extends Bloc<SettingsEvent, SettingsState> {
 
       emit(state.copyWith(status: SettingsStatus.ready, settings: settings));
 
-      print(
-        'Music is enabled, starting music...======================${settings.musicEnabled}',
-      );
       if (settings.musicEnabled) {
         await _audioService.startMusic();
       }

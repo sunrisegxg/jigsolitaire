@@ -13,5 +13,3 @@ class SettingToggled extends SettingsEvent {
 
   const SettingToggled(this.type);
 }
-
-

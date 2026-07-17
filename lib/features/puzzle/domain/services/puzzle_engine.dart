@@ -16,7 +16,9 @@ class PuzzleEngine {
   });
 
   PuzzleBoard startGame({int gridSize = AppConstants.defaultGridSize}) {
-    final shuffledBoard = shuffleService.generateInitialBoard(gridSize: gridSize);
+    final shuffledBoard = shuffleService.generateInitialBoard(
+      gridSize: gridSize,
+    );
     return groupService.updateGroups(shuffledBoard).board;
   }
 

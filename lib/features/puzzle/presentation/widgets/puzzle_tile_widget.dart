@@ -88,7 +88,10 @@ class PuzzleTileWidget extends StatelessWidget {
                 right: sameGroupRight ? -borderWidth / 2 : 0,
                 child: Container(
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.black, width: borderWidth / 2),
+                    border: Border.all(
+                      color: Colors.black,
+                      width: borderWidth / 2,
+                    ),
                     borderRadius: BorderRadius.only(
                       topLeft: topLeft,
                       topRight: topRight,
@@ -109,7 +112,10 @@ class PuzzleTileWidget extends StatelessWidget {
     final targetX = (piece.currentIndex % gridSize) + dx;
     final targetY = (piece.currentIndex ~/ gridSize) + dy;
 
-    if (targetX < 0 || targetX >= gridSize || targetY < 0 || targetY >= gridSize) {
+    if (targetX < 0 ||
+        targetX >= gridSize ||
+        targetY < 0 ||
+        targetY >= gridSize) {
       return false;
     }
 

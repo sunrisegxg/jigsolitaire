@@ -17,7 +17,7 @@ extension PuzzleModeExtension on PuzzleMode {
       PuzzleMode.normal => 16,
       PuzzleMode.hard => 36,
       PuzzleMode.dailyChallenge => 64,
-      PuzzleMode.masterChallenge => 81,
+      PuzzleMode.masterChallenge => 0,
     };
   }
 

@@ -7,7 +7,8 @@ import 'package:jigsolitaire/features/settings/presentation/widgets/setting_dial
 import '../../../../core/services/interaction_service.dart';
 
 class HomeHeader extends StatelessWidget {
-  const HomeHeader({super.key});
+  const HomeHeader({this.collectionButtonKey, super.key});
+  final GlobalKey? collectionButtonKey;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +26,7 @@ class HomeHeader extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             GestureDetector(
+              key: collectionButtonKey,
               onTap: () async {
                 await context.read<InteractionService>().tap();
 

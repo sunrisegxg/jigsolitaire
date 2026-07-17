@@ -9,8 +9,7 @@ class PuzzleShuffleService {
 
   PuzzleShuffleService({Random? random}) : _random = random ?? Random();
 
-
- // Generates a shuffled puzzle board with the specified grid size.
+  // Generates a shuffled puzzle board with the specified grid size.
   PuzzleBoard generateInitialBoard({
     int gridSize = AppConstants.defaultGridSize,
   }) {

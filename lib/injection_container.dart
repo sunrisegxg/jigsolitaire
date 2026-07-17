@@ -10,6 +10,9 @@ import 'package:jigsolitaire/features/settings/data/repositories/shared_preferen
 import 'package:jigsolitaire/features/settings/domain/repositories/settings_repository.dart';
 import 'package:jigsolitaire/features/settings/presentation/bloc/settings_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'features/content/data/local_game_content_catalog.dart';
+import 'features/content/domain/game_content_catalog.dart';
+import 'features/puzzle/domain/services/puzzle_level_config_service.dart';
 
 import 'features/puzzle/domain/services/puzzle_engine.dart';
 import 'features/puzzle/domain/services/puzzle_group_service.dart';
@@ -33,6 +36,10 @@ class InjectionContainer {
 
   static final SharedPreferencesAsync _sharedPreferences =
       SharedPreferencesAsync();
+
+  static final GameContentCatalog contentCatalog = LocalGameContentCatalog();
+  static final PuzzleLevelConfigService puzzleLevelConfigService =
+      PuzzleLevelConfigService(contentCatalog);
 
   static final GameProgressRepository gameProgressRepository =
       LocalGameProgressRepository(preferences: _sharedPreferences);

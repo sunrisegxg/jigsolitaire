@@ -12,11 +12,7 @@ class CardBackWidget extends StatelessWidget {
         border: Border.all(color: Colors.white, width: 1.5),
       ),
       child: const Center(
-        child: Icon(
-          Icons.extension,
-          color: Colors.white,
-          size: 18,
-        ),
+        child: Icon(Icons.extension, color: Colors.white, size: 18),
       ),
     );
   }

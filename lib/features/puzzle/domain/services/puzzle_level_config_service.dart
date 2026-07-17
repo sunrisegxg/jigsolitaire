@@ -1,88 +1,47 @@
+import '../../../content/domain/game_content_catalog.dart';
 import '../entities/puzzle_level_config.dart';
 import '../entities/puzzle_mode.dart';
+import '../entities/puzzle_session.dart';
 
 class PuzzleLevelConfigService {
-  PuzzleLevelConfigService._();
+  const PuzzleLevelConfigService(this.catalog);
+  final GameContentCatalog catalog;
 
-  static const int levelsPerPage = 25;
-
-  /// Trang đầu ít màn Hard hơn để người chơi làm quen.
-  static const Set<int> _firstPageHardPositions = {10, 20, 25};
-
-  /// Trang thứ hai tăng nhẹ số màn Hard.
-  static const Set<int> _secondPageHardPositions = {8, 16, 24, 25};
-
-  /// Từ trang thứ ba trở đi:
-  /// mỗi 5 màn có một màn Hard.
-  static const Set<int> _regularHardPositions = {5, 10, 15, 20, 25};
-
-  static PuzzleLevelConfig campaign({required int level}) {
-    if (level < 1) {
-      throw ArgumentError.value(
-        level,
-        'level',
-        'Campaign level must be greater than or equal to 1.',
-      );
+  PuzzleLevelConfig campaign({
+    required int level,
+    PuzzleSessionPurpose purpose = PuzzleSessionPurpose.progress,
+  }) {
+    final definition = catalog.campaignLevel(level);
+    if (definition == null || !definition.isAvailable) {
+      throw StateError('Campaign level $level is not available.');
     }
-
-    final pageIndex = (level - 1) ~/ levelsPerPage;
-    final pageNumber = pageIndex + 1;
-
-    final positionInPage = ((level - 1) % levelsPerPage) + 1;
-
-    final hardPositions = _hardPositionsForPage(pageNumber);
-
-    final mode = hardPositions.contains(positionInPage)
-        ? PuzzleMode.hard
-        : PuzzleMode.normal;
-
+    final collection = catalog.collectionForLevel(level)!;
     return PuzzleLevelConfig(
       level: level,
-      mode: mode,
-      pageNumber: pageNumber,
-      positionInPage: positionInPage,
-      imagePath: _campaignImagePath(level),
+      mode: definition.mode,
+      pageNumber: collection.ordinal,
+      positionInPage: definition.position + 1,
+      imagePath: definition.puzzleImageAsset,
+      session: CampaignPuzzleSession(level: definition, purpose: purpose),
     );
   }
 
-  static PuzzleLevelConfig dailyChallenge({
-    required DateTime date,
-    required String imagePath,
+  PuzzleLevelConfig master({
+    required int id,
+    PuzzleSessionPurpose purpose = PuzzleSessionPurpose.progress,
   }) {
+    final definition = catalog.masterLevel(id);
+    if (definition == null || !definition.isAvailable) {
+      throw StateError('Master level $id is not available.');
+    }
+    if (definition.rows != definition.columns) {
+      throw StateError('The current puzzle engine requires a square grid.');
+    }
     return PuzzleLevelConfig(
-      level: 0,
-      mode: PuzzleMode.dailyChallenge,
-      imagePath: imagePath,
-    );
-  }
-
-  static PuzzleLevelConfig masterChallenge({required String imagePath}) {
-    return PuzzleLevelConfig(
-      level: 0,
+      level: id,
       mode: PuzzleMode.masterChallenge,
-      imagePath: imagePath,
+      imagePath: definition.imageAsset,
+      session: MasterPuzzleSession(level: definition, purpose: purpose),
     );
-  }
-
-  // hàm kiểm tra nếu còn trong 25 màn thì có 3 hard level, 50 thì 4, 50 trở lên thì auto 5
-  static Set<int> _hardPositionsForPage(int pageNumber) {
-    if (pageNumber == 1) {
-      return _firstPageHardPositions;
-    }
-
-    if (pageNumber == 2) {
-      return _secondPageHardPositions;
-    }
-
-    return _regularHardPositions;
-  }
-
-  static String _campaignImagePath(int level) {
-    // final formattedLevel = level.toString().padLeft(3, '0');
-    final formattedLevel = level.toString();
-
-    return 'assets/images/puzzles/campaign/'
-        // 'level_$formattedLevel.webp';
-        '$formattedLevel.jpg';
   }
 }

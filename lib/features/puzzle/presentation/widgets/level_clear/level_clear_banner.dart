@@ -26,11 +26,7 @@ class LevelClearBanner extends StatelessWidget {
     fontWeight: FontWeight.w900,
     letterSpacing: 1.5,
     shadows: [
-      Shadow(
-        color: Color(0x99000000),
-        offset: Offset(0, 3),
-        blurRadius: 0,
-      ),
+      Shadow(color: Color(0x99000000), offset: Offset(0, 3), blurRadius: 0),
     ],
   );
 

@@ -24,9 +24,6 @@ class MovePuzzleGroupUseCase {
     required PuzzleBoard board,
     required Map<int, int> oldGroupMap,
   }) {
-    return engine.updateGroupsAfterMove(
-      board: board,
-      oldGroupMap: oldGroupMap,
-    );
+    return engine.updateGroupsAfterMove(board: board, oldGroupMap: oldGroupMap);
   }
 }
