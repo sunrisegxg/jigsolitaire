@@ -24,13 +24,13 @@ No backend, account system, network API, database, analytics, or environment-spe
 
 ### Campaign and progression
 
-- The campaign catalog defines collections, available levels, puzzle assets, collection images, modes, and rewards. Current campaign availability ends at level 34.
+- The campaign catalog is built from Flutter's asset manifest at startup. Numbered campaign, collection, and Master images become content without editing UI code; campaign availability stops at the first missing sequential level.
 - The home screen displays the active collection as a fixed 5 x 5 grid. Completed cards reveal aligned slices of the collection image; incomplete cards retain their backs.
 - Completed campaign cards can be replayed after confirmation. Explicit replay sessions never grant coins or change progress.
 - `GameProgress` stores sequential campaign progress, a shared coin balance, purchased Master IDs, and completed Master IDs in the versioned `game_progress.v2` aggregate. Legacy level/coin keys migrate automatically.
 - Each campaign page contains 25 levels. Hard-level positions are 10, 20, and 25 on page 1; 8, 16, 24, and 25 on page 2; and every fifth position on later pages.
 - The current implementation assigns both Normal and Hard modes a 2 x 2 board. Their configured rewards differ: 16 and 36 coins respectively.
-- After level 34, Home displays an all-available-levels-completed state and cannot construct a route for level 35.
+- At the end of the contiguous campaign assets, Home displays an all-available-levels-completed state and cannot construct a route past a missing level.
 
 ### Puzzle gameplay
 

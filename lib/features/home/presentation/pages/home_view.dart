@@ -1,11 +1,12 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_confetti/flutter_confetti.dart';
 
+import '../../../../core/widgets/game_dialog.dart';
 import '../../../../injection_container.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
 import '../../../game_progress/presentation/bloc/game_progress_event.dart';
-import '../../../../core/widgets/game_dialog.dart';
 import '../../../puzzle/domain/entities/puzzle_route_result.dart';
 import '../../../puzzle/domain/entities/puzzle_session.dart';
 import '../../../puzzle/presentation/pages/puzzle_game_page.dart';
@@ -29,6 +30,7 @@ class _HomeViewState extends State<HomeView>
   final GlobalKey _gridKey = GlobalKey();
   late final AnimationController _collectionController;
   Offset _flightOffset = Offset.zero;
+  bool _didLaunchMergeConfetti = false;
 
   @override
   void initState() {
@@ -36,7 +38,7 @@ class _HomeViewState extends State<HomeView>
     _collectionController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 2300),
-    );
+    )..addListener(_launchMergeConfettiIfNeeded);
   }
 
   @override
@@ -98,6 +100,7 @@ class _HomeViewState extends State<HomeView>
   }
 
   Future<void> _playCollectionFlight() async {
+    _didLaunchMergeConfetti = false;
     await WidgetsBinding.instance.endOfFrame;
     if (!mounted) return;
     _calculateFlightOffset();
@@ -105,6 +108,38 @@ class _HomeViewState extends State<HomeView>
     if (!mounted) return;
     context.read<HomeBloc>().add(const HomeCollectionFlightFinished());
     _collectionController.reset();
+  }
+
+  void _launchMergeConfettiIfNeeded() {
+    if (!mounted ||
+        _didLaunchMergeConfetti ||
+        _collectionController.value < 0.38) {
+      return;
+    }
+    _didLaunchMergeConfetti = true;
+    const colors = [
+      Color(0xFFFFD54F),
+      Color(0xFF56C596),
+      Color(0xFF4FD3FF),
+      Colors.white,
+      Colors.orange,
+      Colors.pink,
+    ];
+    for (final x in const [0.2, 0.5, 0.8]) {
+      Confetti.launch(
+        context,
+        options: ConfettiOptions(
+          particleCount: 45,
+          spread: 45,
+          startVelocity: 28,
+          gravity: .35,
+          ticks: 220,
+          x: x,
+          y: .42,
+          colors: colors,
+        ),
+      );
+    }
   }
 
   void _calculateFlightOffset() {
@@ -179,7 +214,7 @@ class _HomeViewState extends State<HomeView>
                             return Transform.translate(
                               offset: _flightOffset * flight,
                               child: Transform.scale(
-                                scale: 1 - 0.88 * flight,
+                                scale: 1 - 0.96 * flight,
                                 child: Opacity(
                                   opacity: 1 - 0.15 * flight,
                                   child: child,

@@ -24,6 +24,7 @@ import '../widgets/level_clear/coin_wallet.dart';
 import '../widgets/level_clear/flying_coin_layer.dart';
 import '../widgets/level_clear/level_clear_banner.dart';
 import '../widgets/level_clear/level_clear_reward_panel.dart';
+import '../widgets/level_mode_intro_overlay.dart';
 import '../widgets/puzzle_board_widget.dart';
 
 class PuzzleGameView extends StatefulWidget {
@@ -236,6 +237,14 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
               clipBehavior: Clip.none,
               children: [
                 _buildGameContent(state.isCompleted, widget.config),
+
+                LevelModeIntroOverlay(
+                  mode: widget.config.mode,
+                  visible:
+                      state.phase == PuzzleGamePhase.loading ||
+                      state.phase == PuzzleGamePhase.dealing ||
+                      state.phase == PuzzleGamePhase.flipping,
+                ),
 
                 LevelClearBanner(
                   assetPath: AppConstants.levelClearBanner,

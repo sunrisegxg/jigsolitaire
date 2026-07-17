@@ -1,3 +1,5 @@
+import 'package:flutter/services.dart';
+
 import '../../puzzle/domain/entities/puzzle_mode.dart';
 import '../domain/entities/campaign_content.dart';
 import '../domain/entities/content_availability.dart';
@@ -5,9 +7,20 @@ import '../domain/entities/master_content.dart';
 import '../domain/game_content_catalog.dart';
 
 class LocalGameContentCatalog implements GameContentCatalog {
-  LocalGameContentCatalog()
-    : campaignCollections = _buildCampaignCollections(),
-      masterLevels = _buildMasterLevels();
+  LocalGameContentCatalog._({
+    required this.campaignCollections,
+    required this.masterLevels,
+  });
+
+  static Future<LocalGameContentCatalog> load() async {
+    final manifest = await AssetManifest.loadFromAssetBundle(rootBundle);
+    final assets = manifest.listAssets();
+
+    return LocalGameContentCatalog._(
+      campaignCollections: _buildCampaignCollections(assets),
+      masterLevels: _buildMasterLevels(assets),
+    );
+  }
 
   @override
   final List<CampaignCollectionDefinition> campaignCollections;
@@ -60,45 +73,81 @@ class LocalGameContentCatalog implements GameContentCatalog {
     return levels.isEmpty ? null : levels.reduce((a, b) => a > b ? a : b);
   }
 
-  static List<CampaignCollectionDefinition> _buildCampaignCollections() {
+  static List<CampaignCollectionDefinition> _buildCampaignCollections(
+    List<String> assets,
+  ) {
+    final campaignAssets = _numberedAssets(
+      assets,
+      directory: 'assets/images/puzzles/campaign',
+    );
+    final collectionAssets = _numberedAssets(
+      assets,
+      directory: 'assets/images/collections',
+    );
+
+    // Campaign progression is sequential. Ignore images after the first gap so
+    // the app can never advance past a missing level.
+    var finalContiguousLevel = 0;
+    while (campaignAssets.containsKey(finalContiguousLevel + 1)) {
+      finalContiguousLevel++;
+    }
+
+    final highestCampaignCollection = finalContiguousLevel == 0
+        ? 0
+        : (finalContiguousLevel - 1) ~/ 25 + 1;
+    final highestCollectionImage = collectionAssets.keys.isEmpty
+        ? 0
+        : collectionAssets.keys.reduce((a, b) => a > b ? a : b);
+    final collectionCount = highestCampaignCollection > highestCollectionImage
+        ? highestCampaignCollection
+        : highestCollectionImage;
+
     return [
-      _collection(ordinal: 1, availableEndLevel: 25),
-      _collection(ordinal: 2, availableEndLevel: 34),
-      for (var ordinal = 3; ordinal <= 10; ordinal++)
-        CampaignCollectionDefinition(
-          id: 'campaign_collection_$ordinal',
+      for (var ordinal = 1; ordinal <= collectionCount; ordinal++)
+        _buildCollection(
           ordinal: ordinal,
-          title: '${(ordinal - 1) * 25 + 1}-${ordinal * 25}',
-          startLevel: (ordinal - 1) * 25 + 1,
-          levelCount: 25,
-          collectionImageAsset: 'assets/images/collections/$ordinal.jpg',
-          levels: const [],
-          availability: ContentAvailability.comingSoon,
+          finalContiguousLevel: finalContiguousLevel,
+          campaignAssets: campaignAssets,
+          collectionImageAsset: collectionAssets[ordinal],
         ),
     ];
   }
 
-  static CampaignCollectionDefinition _collection({
+  static CampaignCollectionDefinition _buildCollection({
     required int ordinal,
-    required int availableEndLevel,
+    required int finalContiguousLevel,
+    required Map<int, String> campaignAssets,
+    required String? collectionImageAsset,
   }) {
-    final start = (ordinal - 1) * 25 + 1;
+    final startLevel = (ordinal - 1) * 25 + 1;
+    final collectionEnd = startLevel + 24;
+    final availableEnd = finalContiguousLevel < collectionEnd
+        ? finalContiguousLevel
+        : collectionEnd;
+    final hasPlayableLevels = availableEnd >= startLevel;
+    final isAvailable = collectionImageAsset != null && hasPlayableLevels;
+
     return CampaignCollectionDefinition(
       id: 'campaign_collection_$ordinal',
       ordinal: ordinal,
-      title: '$start-${start + 24}',
-      startLevel: start,
+      title: '$startLevel-$collectionEnd',
+      startLevel: startLevel,
       levelCount: 25,
-      collectionImageAsset: 'assets/images/collections/$ordinal.jpg',
-      levels: [
-        for (var level = start; level <= availableEndLevel; level++)
-          CampaignLevelDefinition(
-            level: level,
-            position: level - start,
-            puzzleImageAsset: 'assets/images/puzzles/campaign/$level.jpg',
-            mode: _campaignMode(level),
-          ),
-      ],
+      collectionImageAsset: collectionImageAsset ?? '',
+      availability: isAvailable
+          ? ContentAvailability.available
+          : ContentAvailability.comingSoon,
+      levels: isAvailable
+          ? [
+              for (var level = startLevel; level <= availableEnd; level++)
+                CampaignLevelDefinition(
+                  level: level,
+                  position: level - startLevel,
+                  puzzleImageAsset: campaignAssets[level]!,
+                  mode: _campaignMode(level),
+                ),
+            ]
+          : const [],
     );
   }
 
@@ -115,14 +164,37 @@ class LocalGameContentCatalog implements GameContentCatalog {
         : PuzzleMode.normal;
   }
 
-  static List<MasterLevelDefinition> _buildMasterLevels() {
+  static List<MasterLevelDefinition> _buildMasterLevels(List<String> assets) {
+    final masterAssets = _numberedAssets(
+      assets,
+      directory: 'assets/images/puzzles/master_challenge',
+    );
+    final ids = masterAssets.keys.toList()..sort();
     return [
-      for (var id = 1; id <= 12; id++)
+      for (final id in ids)
         MasterLevelDefinition(
           id: id,
-          imageAsset: 'assets/images/puzzles/master_challenge/$id.jpg',
+          imageAsset: masterAssets[id]!,
           unlockCost: 1000,
         ),
     ];
+  }
+
+  static Map<int, String> _numberedAssets(
+    List<String> assets, {
+    required String directory,
+  }) {
+    final pattern = RegExp(
+      '^${RegExp.escape(directory)}/([0-9]+)\\.(jpg|jpeg|png|webp)\$',
+      caseSensitive: false,
+    );
+    final result = <int, String>{};
+    for (final asset in assets) {
+      final match = pattern.firstMatch(asset);
+      if (match == null) continue;
+      final id = int.tryParse(match.group(1)!);
+      if (id != null && id > 0) result[id] = asset;
+    }
+    return result;
   }
 }

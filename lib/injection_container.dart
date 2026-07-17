@@ -39,9 +39,8 @@ class InjectionContainer {
   static final SharedPreferencesAsync _sharedPreferences =
       SharedPreferencesAsync();
 
-  static final GameContentCatalog contentCatalog = LocalGameContentCatalog();
-  static final PuzzleLevelConfigService puzzleLevelConfigService =
-      PuzzleLevelConfigService(contentCatalog);
+  static late final GameContentCatalog contentCatalog;
+  static late final PuzzleLevelConfigService puzzleLevelConfigService;
 
   static final GameProgressRepository gameProgressRepository =
       LocalGameProgressRepository(preferences: _sharedPreferences);
@@ -49,6 +48,8 @@ class InjectionContainer {
   static late final InteractionService interactionService;
 
   static Future<void> initialize() async {
+    contentCatalog = await LocalGameContentCatalog.load();
+    puzzleLevelConfigService = PuzzleLevelConfigService(contentCatalog);
     await soundService.init();
 
     interactionService = InteractionService(

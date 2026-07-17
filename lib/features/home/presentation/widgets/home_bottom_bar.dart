@@ -30,90 +30,7 @@ class HomeBottomBar extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          GestureDetector(
-            onTap: () async {
-              await context.read<InteractionService>().tap();
-
-              // if (!context.mounted) return;
-
-              // await showDialog<void>(
-              //   context: context,
-              //   builder: (_) => const DailyChallengeDialog(),
-              // );
-
-              if (!context.mounted) return;
-
-              showDialog(
-                context: context,
-                builder: (_) => Dialog(
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(20),
-                  ),
-                  backgroundColor: const Color(0xFFF3F3F3),
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(
-                          Icons.construction_rounded,
-                          size: 70,
-                          color: Color(0xFF056E45),
-                        ),
-                        const SizedBox(height: 16),
-                        Text(
-                          "Coming Soon",
-                          style: GoogleFonts.poppins(
-                            fontSize: 26,
-                            fontWeight: FontWeight.bold,
-                            color: const Color(0xFF056E45),
-                          ),
-                        ),
-                        const SizedBox(height: 12),
-                        Text(
-                          "This feature is under development.\nStay tuned for future updates!",
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.poppins(
-                            fontSize: 15,
-                            color: Colors.black87,
-                          ),
-                        ),
-                        const SizedBox(height: 24),
-                        SizedBox(
-                          width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.pop(context),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF056E45),
-                              foregroundColor: Colors.white,
-                              elevation: 2,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
-                              ),
-                            ),
-                            child: const Padding(
-                              padding: EdgeInsets.symmetric(vertical: 12),
-                              child: Text("OK"),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-            child: Container(
-              width: 50,
-              height: 50,
-              decoration: BoxDecoration(
-                color: const Color(0xFF4C5B56),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF989C9B), width: 4),
-              ),
-              child: const Icon(Icons.calendar_month, color: Color(0xFF989C9B)),
-            ),
-          ),
+          // _buildDailyChallengeButton(context),
           const Spacer(),
           DecoratedBox(
             decoration: BoxDecoration(
@@ -210,6 +127,93 @@ class HomeBottomBar extends StatelessWidget {
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDailyChallengeButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await context.read<InteractionService>().tap();
+
+        // if (!context.mounted) return;
+
+        // await showDialog<void>(
+        //   context: context,
+        //   builder: (_) => const DailyChallengeDialog(),
+        // );
+
+        if (!context.mounted) return;
+
+        showDialog(
+          context: context,
+          builder: (_) => Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
+            backgroundColor: const Color(0xFFF3F3F3),
+            child: Padding(
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.construction_rounded,
+                    size: 70,
+                    color: Color(0xFF056E45),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    "Coming Soon",
+                    style: GoogleFonts.poppins(
+                      fontSize: 26,
+                      fontWeight: FontWeight.bold,
+                      color: const Color(0xFF056E45),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    "This feature is under development.\nStay tuned for future updates!",
+                    textAlign: TextAlign.center,
+                    style: GoogleFonts.poppins(
+                      fontSize: 15,
+                      color: Colors.black87,
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () => Navigator.pop(context),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF056E45),
+                        foregroundColor: Colors.white,
+                        elevation: 2,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        child: Text("OK"),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+      child: Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: const Color(0xFF4C5B56),
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFF989C9B), width: 4),
+        ),
+        child: const Icon(Icons.calendar_month, color: Color(0xFF989C9B)),
       ),
     );
   }
