@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 
+import '../../../../core/services/interaction_service.dart';
 import '../../../content/domain/entities/campaign_content.dart';
 
 class HomeGrid extends StatelessWidget {
@@ -42,6 +44,7 @@ class HomeGrid extends StatelessWidget {
               children: [
                 for (var position = 0; position < 25; position++)
                   _buildCell(
+                    context: context,
                     position: position,
                     cellWidth: cellWidth,
                     cellHeight: cellHeight,
@@ -58,6 +61,7 @@ class HomeGrid extends StatelessWidget {
   }
 
   Widget _buildCell({
+    required BuildContext context,
     required int position,
     required double cellWidth,
     required double cellHeight,
@@ -95,7 +99,12 @@ class HomeGrid extends StatelessWidget {
                   (_gridSize - 1 - row).toDouble(),
                 ),
           child: GestureDetector(
-            onTap: isCompleted ? () => onCompletedLevelTap(level) : null,
+            onTap: isCompleted
+                ? () async {
+                    await context.read<InteractionService>().tap();
+                    onCompletedLevelTap(level);
+                  }
+                : null,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5 * frameOpacity),
               child: Stack(

@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 
 import '../../../../core/widgets/game_dialog.dart';
+import '../../../../core/services/interaction_service.dart';
 import '../../../../injection_container.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
 import '../../../game_progress/presentation/bloc/game_progress_event.dart';
@@ -264,9 +265,16 @@ class _HomeViewState extends State<HomeView>
                               FilledButton.icon(
                                 onPressed: homeState.interactionLocked
                                     ? null
-                                    : () => context
-                                          .read<GameProgressBloc>()
-                                          .add(const DebugCoinsAdded()),
+                                    : () async {
+                                        await context
+                                            .read<InteractionService>()
+                                            .tap();
+                                        if (context.mounted) {
+                                          context.read<GameProgressBloc>().add(
+                                            const DebugCoinsAdded(),
+                                          );
+                                        }
+                                      },
                                 icon: const Icon(Icons.monetization_on),
                                 label: const Text('+1000 Coins'),
                               ),
@@ -274,7 +282,11 @@ class _HomeViewState extends State<HomeView>
                               FilledButton.icon(
                                 onPressed: homeState.interactionLocked
                                     ? null
-                                    : () {
+                                    : () async {
+                                        await context
+                                            .read<InteractionService>()
+                                            .tap();
+                                        if (!context.mounted) return;
                                         final maximumLevel = InjectionContainer
                                             .contentCatalog
                                             .finalAvailableCampaignLevel;

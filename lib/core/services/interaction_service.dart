@@ -24,14 +24,12 @@ class InteractionService {
 
     final tasks = <Future<void>>[];
 
-    if (settings.vibrationEnabled) {
-      tasks.add(_vibrationService.vibrate());
-    }
-
     if (settings.soundEnabled) {
       tasks.add(_soundService.playClick());
     }
-
+    if (settings.vibrationEnabled) {
+      tasks.add(_vibrationService.vibrate());
+    }
     if (settings.musicEnabled) {
       tasks.add(_audioService.startMusic());
     }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/widgets/game_dialog.dart';
+import '../../../../core/services/interaction_service.dart';
 import '../../../../injection_container.dart';
 import '../../../content/domain/entities/master_content.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
@@ -133,7 +134,14 @@ class _MasterChallengeView extends StatelessWidget {
                             alignment: Alignment.centerLeft,
                             child: IconButton(
                               onPressed: state.purchasingLevelId == null
-                                  ? () => Navigator.pop(context)
+                                  ? () async {
+                                      await context
+                                          .read<InteractionService>()
+                                          .tap();
+                                      if (context.mounted) {
+                                        Navigator.pop(context);
+                                      }
+                                    }
                                   : null,
                               icon: const Icon(
                                 Icons.close,
@@ -186,9 +194,16 @@ class _MasterChallengeView extends StatelessWidget {
                             data: card,
                             busy: state.purchasingLevelId == card.level.id,
                             onTap: state.purchasingLevelId == null
-                                ? () => context.read<MasterChallengeBloc>().add(
-                                    MasterCardTapped(card.level.id),
-                                  )
+                                ? () async {
+                                    await context
+                                        .read<InteractionService>()
+                                        .tap();
+                                    if (context.mounted) {
+                                      context.read<MasterChallengeBloc>().add(
+                                        MasterCardTapped(card.level.id),
+                                      );
+                                    }
+                                  }
                                 : null,
                           );
                         },

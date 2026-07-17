@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../services/interaction_service.dart';
 
 class AppButton extends StatelessWidget {
   final String text;
@@ -15,11 +18,24 @@ class AppButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (icon == null) {
-      return FilledButton(onPressed: onPressed, child: Text(text));
+      return FilledButton(
+        onPressed: onPressed == null
+            ? null
+            : () async {
+                await context.read<InteractionService>().tap();
+                onPressed!();
+              },
+        child: Text(text),
+      );
     }
 
     return FilledButton.icon(
-      onPressed: onPressed,
+      onPressed: onPressed == null
+          ? null
+          : () async {
+              await context.read<InteractionService>().tap();
+              onPressed!();
+            },
       icon: Icon(icon),
       label: Text(text),
     );

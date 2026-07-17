@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../../core/services/interaction_service.dart';
 
 class PuzzleErrorView extends StatelessWidget {
   const PuzzleErrorView({required this.onRetry, this.message, super.key});
@@ -35,7 +38,10 @@ class PuzzleErrorView extends StatelessWidget {
             ],
             const SizedBox(height: 20),
             ElevatedButton.icon(
-              onPressed: onRetry,
+              onPressed: () async {
+                await context.read<InteractionService>().tap();
+                onRetry();
+              },
               icon: const Icon(Icons.refresh),
               label: const Text('Retry'),
             ),

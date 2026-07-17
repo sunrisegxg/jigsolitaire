@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_constants.dart';
+import '../../../../core/services/interaction_service.dart';
 import '../../domain/entities/puzzle_piece.dart';
 import '../bloc/puzzle_bloc.dart';
 import '../bloc/puzzle_event.dart';
@@ -165,7 +166,9 @@ class _PuzzleBoardWidgetState extends State<PuzzleBoardWidget> {
         return Draggable<int>(
           maxSimultaneousDrags: canDrag ? 1 : 0,
           data: index,
-          onDragStarted: () {
+          onDragStarted: () async {
+            await context.read<InteractionService>().tap();
+            if (!context.mounted) return;
             context.read<PuzzleBloc>().add(PuzzleDragStarted(piece.groupId));
           },
           onDragEnd: (details) {

@@ -4,7 +4,6 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
-import 'package:jigsolitaire/core/services/interaction_service.dart';
 import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
@@ -326,8 +325,6 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
   }
 
   Future<void> _showSettingsDialog() async {
-    await context.read<InteractionService>().tap();
-
     if (!mounted) return;
 
     await showDialog<void>(

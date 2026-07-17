@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+
+import '../services/interaction_service.dart';
 
 class GameDialog extends StatelessWidget {
   const GameDialog({
@@ -102,7 +105,10 @@ class GameDialogButton extends StatelessWidget {
         height: 44,
         child: primary
             ? FilledButton(
-                onPressed: onPressed,
+                onPressed: () async {
+                  await context.read<InteractionService>().tap();
+                  onPressed();
+                },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFFFC857),
                   foregroundColor: const Color(0xFF075D45),
@@ -114,7 +120,10 @@ class GameDialogButton extends StatelessWidget {
                 child: _label,
               )
             : OutlinedButton(
-                onPressed: onPressed,
+                onPressed: () async {
+                  await context.read<InteractionService>().tap();
+                  onPressed();
+                },
                 style: OutlinedButton.styleFrom(
                   foregroundColor: Colors.white,
                   side: const BorderSide(color: Colors.white70),

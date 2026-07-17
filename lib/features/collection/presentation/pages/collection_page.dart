@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../injection_container.dart';
+import '../../../../core/services/interaction_service.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
 import '../../domain/entities/collection_item.dart';
 import '../bloc/collection_bloc.dart';
@@ -50,7 +51,10 @@ class _CollectionView extends StatelessWidget {
                       Align(
                         alignment: Alignment.centerLeft,
                         child: IconButton(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () async {
+                            await context.read<InteractionService>().tap();
+                            if (context.mounted) Navigator.pop(context);
+                          },
                           icon: const Icon(
                             Icons.close,
                             size: 36,
@@ -102,10 +106,16 @@ class _CollectionCard extends StatelessWidget {
     final completed = item.state == CollectionProgressState.completed;
     return GestureDetector(
       onTap: completed
-          ? () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => _CollectionPreview(item: item)),
-            )
+          ? () async {
+              await context.read<InteractionService>().tap();
+              if (!context.mounted) return;
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => _CollectionPreview(item: item),
+                ),
+              );
+            }
           : null,
       child: ClipRRect(
         borderRadius: BorderRadius.circular(12),
@@ -192,7 +202,10 @@ class _CollectionPreview extends StatelessWidget {
                   elevation: 6,
                   child: IconButton(
                     tooltip: 'Close',
-                    onPressed: () => Navigator.pop(context),
+                    onPressed: () async {
+                      await context.read<InteractionService>().tap();
+                      if (context.mounted) Navigator.pop(context);
+                    },
                     icon: const Icon(
                       Icons.close_rounded,
                       color: Colors.white,

@@ -7,7 +7,7 @@ class VibrationService {
 
   Future<void> vibrate() async {
     if (await Vibration.hasVibrator()) {
-      Vibration.vibrate(duration: 50);
+      await Vibration.vibrate(duration: 50);
     }
   }
 }

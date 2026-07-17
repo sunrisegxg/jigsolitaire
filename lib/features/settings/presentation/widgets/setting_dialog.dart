@@ -93,10 +93,11 @@ class _SettingDialogState extends State<SettingDialog> {
                       icon: Icons.music_note,
                       disabledIcon: Icons.music_off,
                       isEnabled: settings.musicEnabled,
-                      onPressed: () {
+                      onPressed: () async {
                         context.read<SettingsBloc>().add(
                           const SettingToggled(SettingType.music),
                         );
+                        await context.read<InteractionService>().tap();
                       },
                     ),
                     const SizedBox(width: 20),
