@@ -21,112 +21,28 @@ class HomeBottomBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final screenSize = MediaQuery.sizeOf(context);
+
     return Padding(
       padding: EdgeInsets.only(
-        left: MediaQuery.sizeOf(context).width * 0.05,
-        right: MediaQuery.sizeOf(context).width * 0.05,
-        bottom: MediaQuery.sizeOf(context).height * 0.04,
+        left: screenSize.width * 0.05,
+        right: screenSize.width * 0.05,
+        bottom: screenSize.height * 0.04,
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          // _buildDailyChallengeButton(context),
-          const Spacer(),
-          DecoratedBox(
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topCenter,
-                end: Alignment.bottomCenter,
-                colors: [Color(0xFF4FD3FF), Color(0xFF0077B6)],
-              ),
-              borderRadius: BorderRadius.circular(12),
-              boxShadow: const [
-                BoxShadow(
-                  color: Colors.black26,
-                  offset: Offset(0, 6),
-                  blurRadius: 10,
-                ),
-              ],
-            ),
-            child: TextButton(
-              onPressed: () async {
-                await context.read<InteractionService>().tap();
-                onPlayPressed();
-              },
-              style: TextButton.styleFrom(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 12,
-                  horizontal: 32,
-                ),
-                disabledForegroundColor: Colors.white70,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
-              ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    isAllCompleted ? 'LEVELS COMPLETED' : 'PLAY',
-                    style: GoogleFonts.poppins(
-                      textStyle: TextStyle(
-                        color: Colors.white,
-                        fontSize: isAllCompleted ? 16 : 32,
-                        fontWeight: FontWeight.bold,
-                        height: 1,
-                      ),
-                    ),
-                  ),
-                  Text(
-                    isAllCompleted ? 'Coming soon' : 'LEVEL $currentLevel',
-                    style: GoogleFonts.poppins(
-                      textStyle: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        height: 1.2,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Spacer(),
-          GestureDetector(
-            onTap: () async {
-              await context.read<InteractionService>().tap();
+      child: SizedBox(
+        width: double.infinity,
+        height: 84,
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            _buildPlayButton(context),
 
-              if (!context.mounted) return;
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const MasterChallengePage()),
-              );
-            },
-            child: Container(
-              width: 50,
-              height: 50,
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: const Color(0xFF4C5B56),
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFF989C9B), width: 4),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withAlpha(100),
-                    blurRadius: 2,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Image.asset(
-                'assets/images/crown.png',
-                color: const Color(0xFF989C9B),
-                fit: BoxFit.cover,
-              ),
+            Align(
+              alignment: Alignment.centerRight,
+              child: _buildMasterChallengeButton(context),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -214,6 +130,104 @@ class HomeBottomBar extends StatelessWidget {
           border: Border.all(color: const Color(0xFF989C9B), width: 4),
         ),
         child: const Icon(Icons.calendar_month, color: Color(0xFF989C9B)),
+      ),
+    );
+  }
+
+  Widget _buildPlayButton(BuildContext context) {
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
+          begin: Alignment.topCenter,
+          end: Alignment.bottomCenter,
+          colors: [Color(0xFF4FD3FF), Color(0xFF0077B6)],
+        ),
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: const [
+          BoxShadow(
+            color: Colors.black26,
+            offset: Offset(0, 6),
+            blurRadius: 10,
+          ),
+        ],
+      ),
+      child: TextButton(
+        onPressed: () async {
+          await context.read<InteractionService>().tap();
+
+          if (!context.mounted) return;
+          onPlayPressed();
+        },
+        style: TextButton.styleFrom(
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 32),
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              isAllCompleted ? 'LEVELS COMPLETED' : 'PLAY',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: isAllCompleted ? 16 : 32,
+                fontWeight: FontWeight.bold,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              isAllCompleted ? 'Coming soon' : 'LEVEL $currentLevel',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                height: 1.2,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMasterChallengeButton(BuildContext context) {
+    return GestureDetector(
+      onTap: () async {
+        await context.read<InteractionService>().tap();
+
+        if (!context.mounted) return;
+
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => const MasterChallengePage()),
+        );
+      },
+      child: Container(
+        width: 50,
+        height: 50,
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: const Color(0xFF4C5B56),
+          shape: BoxShape.circle,
+          border: Border.all(color: const Color(0xFF989C9B), width: 4),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withAlpha(100),
+              blurRadius: 2,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Image.asset(
+          'assets/images/crown.png',
+          color: const Color(0xFF989C9B),
+          fit: BoxFit.contain,
+        ),
       ),
     );
   }
