@@ -3,10 +3,10 @@ enum PuzzleMode { normal, hard, dailyChallenge, masterChallenge }
 extension PuzzleModeExtension on PuzzleMode {
   int get gridSize {
     return switch (this) {
-      PuzzleMode.normal => 2,
-      PuzzleMode.hard => 2,
+      PuzzleMode.normal => 4,
+      PuzzleMode.hard => 6,
       PuzzleMode.dailyChallenge => 8,
-      PuzzleMode.masterChallenge => 2,
+      PuzzleMode.masterChallenge => 9,
     };
   }
 

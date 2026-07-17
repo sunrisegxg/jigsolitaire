@@ -1,13 +1,9 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 
-import '../../../../core/services/interaction_service.dart';
 import '../../../../core/widgets/game_dialog.dart';
 import '../../../../injection_container.dart';
-import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
-import '../../../game_progress/presentation/bloc/game_progress_event.dart';
 import '../../../puzzle/domain/entities/puzzle_route_result.dart';
 import '../../../puzzle/domain/entities/puzzle_session.dart';
 import '../../../puzzle/presentation/pages/puzzle_game_page.dart';
