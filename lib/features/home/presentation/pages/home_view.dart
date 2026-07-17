@@ -1,13 +1,14 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter/foundation.dart';
 
 import '../../../../injection_container.dart';
+import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
+import '../../../game_progress/presentation/bloc/game_progress_event.dart';
+import '../../../../core/widgets/game_dialog.dart';
 import '../../../puzzle/domain/entities/puzzle_route_result.dart';
 import '../../../puzzle/domain/entities/puzzle_session.dart';
 import '../../../puzzle/presentation/pages/puzzle_game_page.dart';
-import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
-import '../../../game_progress/presentation/bloc/game_progress_event.dart';
 import '../bloc/home_bloc.dart';
 import '../bloc/home_event.dart';
 import '../bloc/home_state.dart';
@@ -73,19 +74,20 @@ class _HomeViewState extends State<HomeView>
     if (context.read<HomeBloc>().state.interactionLocked) return;
     final replay = await showDialog<bool>(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Replay this level?'),
-        content: const Text(
-          'Replay mode does not grant coins and does not change your current progress.',
-        ),
+      builder: (dialogContext) => GameDialog(
+        icon: Icons.replay_rounded,
+        title: 'Replay this level?',
+        message:
+            'Replay mode does not grant coins and does not change your current progress.',
         actions: [
-          TextButton(
+          GameDialogButton(
+            label: 'Cancel',
             onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('Cancel'),
           ),
-          FilledButton(
+          GameDialogButton(
+            label: 'Replay',
+            primary: true,
             onPressed: () => Navigator.pop(dialogContext, true),
-            child: const Text('Replay'),
           ),
         ],
       ),
@@ -117,15 +119,15 @@ class _HomeViewState extends State<HomeView>
   void _showComingSoon() {
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('More levels are coming soon'),
-        content: const Text(
-          'You have completed every campaign level currently available.',
-        ),
+      builder: (context) => GameDialog(
+        icon: Icons.celebration_rounded,
+        title: 'More levels are coming soon',
+        message: 'You have completed every campaign level currently available.',
         actions: [
-          TextButton(
+          GameDialogButton(
+            label: 'OK',
+            primary: true,
             onPressed: () => Navigator.pop(context),
-            child: const Text('OK'),
           ),
         ],
       ),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/widgets/game_dialog.dart';
 import '../../../../injection_container.dart';
 import '../../../content/domain/entities/master_content.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
@@ -35,19 +36,20 @@ class _MasterChallengeView extends StatelessWidget {
         final level = action.level!;
         final confirmed = await showDialog<bool>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text('Unlock Master Level ${level.id}?'),
-            content: Text(
-              'Spend ${level.unlockCost} coins to unlock this level permanently?',
-            ),
+          builder: (context) => GameDialog(
+            icon: Icons.lock_open_rounded,
+            title: 'Unlock Master Level ${level.id}?',
+            message:
+                'Spend ${level.unlockCost} coins to unlock this level permanently?',
             actions: [
-              TextButton(
+              GameDialogButton(
+                label: 'Cancel',
                 onPressed: () => Navigator.pop(context, false),
-                child: const Text('Cancel'),
               ),
-              FilledButton(
+              GameDialogButton(
+                label: 'Unlock',
+                primary: true,
                 onPressed: () => Navigator.pop(context, true),
-                child: const Text('Unlock'),
               ),
             ],
           ),
@@ -73,13 +75,17 @@ class _MasterChallengeView extends StatelessWidget {
       case MasterActionType.showMessage:
         await showDialog<void>(
           context: context,
-          builder: (context) => AlertDialog(
-            title: Text(action.title!),
-            content: Text(action.message!),
+          builder: (context) => GameDialog(
+            icon: action.title == 'Not Enough Coins'
+                ? Icons.monetization_on_outlined
+                : Icons.error_outline_rounded,
+            title: action.title!,
+            message: action.message!,
             actions: [
-              TextButton(
+              GameDialogButton(
+                label: 'OK',
+                primary: true,
                 onPressed: () => Navigator.pop(context),
-                child: const Text('OK'),
               ),
             ],
           ),
@@ -108,7 +114,7 @@ class _MasterChallengeView extends StatelessWidget {
                 ),
               ),
               Positioned(
-                top: 50,
+                top: 40,
                 right: 20,
                 child: CoinWallet(coins: state.progress.coins),
               ),

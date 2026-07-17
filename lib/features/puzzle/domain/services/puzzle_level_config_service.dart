@@ -34,9 +34,6 @@ class PuzzleLevelConfigService {
     if (definition == null || !definition.isAvailable) {
       throw StateError('Master level $id is not available.');
     }
-    if (definition.rows != definition.columns) {
-      throw StateError('The current puzzle engine requires a square grid.');
-    }
     return PuzzleLevelConfig(
       level: id,
       mode: PuzzleMode.masterChallenge,

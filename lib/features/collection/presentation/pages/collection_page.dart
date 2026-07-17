@@ -170,29 +170,41 @@ class _CollectionCard extends StatelessWidget {
 
 class _CollectionPreview extends StatelessWidget {
   const _CollectionPreview({required this.item});
+
   final CollectionItem item;
+
   @override
-  Widget build(BuildContext context) => Scaffold(
-    backgroundColor: Colors.black,
-    body: Stack(
-      children: [
-        Positioned.fill(
-          child: InteractiveViewer(
-            child: Center(
-              child: Image.asset(
-                item.definition.collectionImageAsset,
-                fit: BoxFit.contain,
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.black,
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          Image.asset(item.definition.collectionImageAsset, fit: BoxFit.cover),
+          SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Align(
+                alignment: Alignment.topLeft,
+                child: Material(
+                  color: Colors.black.withValues(alpha: 0.55),
+                  shape: const CircleBorder(),
+                  elevation: 6,
+                  child: IconButton(
+                    tooltip: 'Close',
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(
+                      Icons.close_rounded,
+                      color: Colors.white,
+                      size: 30,
+                    ),
+                  ),
+                ),
               ),
             ),
           ),
-        ),
-        SafeArea(
-          child: IconButton(
-            onPressed: () => Navigator.pop(context),
-            icon: const Icon(Icons.close, color: Colors.white, size: 36),
-          ),
-        ),
-      ],
-    ),
-  );
+        ],
+      ),
+    );
+  }
 }

@@ -122,8 +122,6 @@ class LocalGameContentCatalog implements GameContentCatalog {
           id: id,
           imageAsset: 'assets/images/puzzles/master_challenge/$id.jpg',
           unlockCost: 1000,
-          rows: 9,
-          columns: 9,
         ),
     ];
   }

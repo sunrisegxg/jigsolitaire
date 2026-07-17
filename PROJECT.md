@@ -59,7 +59,7 @@ No backend, account system, network API, database, analytics, or environment-spe
 ### Secondary screens
 
 - Collection is a catalog-driven, progress-aware gallery with locked, in-progress, completed, and coming-soon states. Completed images open in a read-only full-screen preview.
-- Master Challenge exposes 12 configured 9 x 9 levels. Levels cost 1,000 coins by default, unlock sequentially, persist purchase/completion state, and remain replayable without rewards.
+- Master Challenge exposes 12 configured levels. Its grid size comes from `PuzzleMode.masterChallenge`, alongside the Normal, Hard, and Daily grid sizes. Levels cost 1,000 coins by default, unlock sequentially, persist purchase/completion state, and remain replayable without rewards.
 - Daily Challenge currently opens a Coming Soon dialog. Calendar/dialog code exists under `features/home`, but it is not connected to the active bottom bar.
 
 ## Architecture
@@ -251,7 +251,7 @@ Deployment is not automated. Publish the generated artifact using the target pla
 - Daily Challenge is Coming Soon; its existing calendar/dialog code is disconnected.
 - Campaign collection images currently use mixed source aspect ratios; Home applies one consistent whole-grid center crop so its 25 slices remain aligned.
 - Help Center, Save your progress, and notification functionality are not implemented beyond UI/feedback or a stored toggle.
-- Normal and Hard both currently use a 2 x 2 grid despite different labels and rewards. Master levels use their configured 9 x 9 dimensions.
+- Normal, Hard, Daily, and Master grid sizes are configured centrally by `PuzzleMode.gridSize`.
 - No error UI is wired for settings/progress loading failures, and missing campaign assets are not recovered with an alternate level.
 - Debug logging includes all BLoC changes and a few direct `print` calls.
 - There is no localization, accessibility audit, save synchronization, telemetry, crash reporting, CI, or automated deployment.

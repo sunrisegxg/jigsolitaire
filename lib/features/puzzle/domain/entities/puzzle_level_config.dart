@@ -30,9 +30,7 @@ class PuzzleLevelConfig {
   final int? positionInPage;
   final PuzzleSession session;
 
-  int get gridSize => session is MasterPuzzleSession
-      ? (session as MasterPuzzleSession).level.rows
-      : mode.gridSize;
+  int get gridSize => mode.gridSize;
 
   int get pieceCount => mode.pieceCount;
 

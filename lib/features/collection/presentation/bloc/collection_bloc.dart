@@ -2,8 +2,8 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../content/domain/game_content_catalog.dart';
 import '../../../content/domain/entities/campaign_content.dart';
+import '../../../content/domain/game_content_catalog.dart';
 import '../../../game_progress/domain/entities/game_progress.dart';
 import '../../../game_progress/presentation/bloc/game_progress_bloc.dart';
 import '../../../game_progress/presentation/bloc/game_progress_state.dart';

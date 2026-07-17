@@ -57,6 +57,9 @@ class HomeGrid extends StatelessWidget {
     );
   }
 
+  static const int _gridSize = 5;
+  static const String _backCardAsset = 'assets/images/backcard.jpeg';
+
   Widget _buildCell({
     required int position,
     required double cellWidth,
@@ -65,94 +68,156 @@ class HomeGrid extends StatelessWidget {
     required double canvasWidth,
     required double canvasHeight,
   }) {
-    final row = position ~/ 5;
-    final column = position % 5;
+    final row = position ~/ _gridSize;
+    final column = position % _gridSize;
     final level = collection.startLevel + position;
-    final definition = collection.levels
+
+    final levelDefinition = collection.levels
         .where((item) => item.position == position)
         .firstOrNull;
-    final completed = definition != null && level <= completedLevelCount;
-    final dealt = position < dealIndex;
+
+    final isAvailable = levelDefinition != null;
+    final isCompleted = isAvailable && level <= completedLevelCount;
+    final isDealt = position < dealIndex;
+
+    final left = column * (cellWidth + gap);
+    final top = row * (cellHeight + gap);
 
     return Positioned(
-      left: column * (cellWidth + gap),
-      top: row * (cellHeight + gap),
+      left: left,
+      top: top,
       width: cellWidth,
       height: cellHeight,
       child: AnimatedOpacity(
         duration: const Duration(milliseconds: 250),
-        opacity: dealt ? 1 : 0,
+        opacity: isDealt ? 1 : 0,
         child: AnimatedSlide(
           duration: const Duration(milliseconds: 450),
           curve: Curves.easeOutCubic,
-          offset: dealt
+          offset: isDealt
               ? Offset.zero
-              : Offset(4 - column.toDouble(), 4 - row.toDouble()),
+              : Offset(
+                  (_gridSize - 1 - column).toDouble(),
+                  (_gridSize - 1 - row).toDouble(),
+                ),
           child: GestureDetector(
-            onTap: completed ? () => onCompletedLevelTap(level) : null,
+            onTap: isCompleted ? () => onCompletedLevelTap(level) : null,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(5 * frameOpacity),
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  if (completed)
-                    ClipRect(
-                      child: OverflowBox(
-                        alignment: Alignment.topLeft,
-                        minWidth: canvasWidth,
-                        maxWidth: canvasWidth,
-                        minHeight: canvasHeight,
-                        maxHeight: canvasHeight,
-                        child: Transform.translate(
-                          offset: Offset(
-                            -column * cellWidth,
-                            -row * cellHeight,
-                          ),
-                          child: Image.asset(
-                            collection.collectionImageAsset,
-                            width: canvasWidth,
-                            height: canvasHeight,
-                            fit: BoxFit.cover,
-                            alignment: Alignment.center,
-                          ),
-                        ),
-                      ),
+                  if (isCompleted)
+                    _buildCompletedImageSlice(
+                      row: row,
+                      column: column,
+                      canvasWidth: canvasWidth,
+                      canvasHeight: canvasHeight,
                     )
                   else
-                    Image.asset(
-                      'assets/images/backcard.jpeg',
-                      fit: BoxFit.cover,
-                    ),
-                  if (!completed)
-                    Center(
-                      child: Text(
-                        '$level',
-                        style: GoogleFonts.poppins(
-                          color: definition == null
-                              ? Colors.white54
-                              : Colors.white,
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
-                          shadows: const [
-                            Shadow(blurRadius: 4, color: Colors.black),
-                          ],
-                        ),
-                      ),
-                    ),
-                  IgnorePointer(
-                    child: Opacity(
-                      opacity: frameOpacity,
-                      child: DecoratedBox(
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.black, width: 1),
-                          borderRadius: BorderRadius.circular(5),
-                        ),
-                      ),
-                    ),
-                  ),
+                    _buildBackCard(level: level, isAvailable: isAvailable),
+                  _buildCellFrame(),
                 ],
               ),
             ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCompletedImageSlice({
+    required int row,
+    required int column,
+    required double canvasWidth,
+    required double canvasHeight,
+  }) {
+    final sliceWidth = canvasWidth / _gridSize;
+    final sliceHeight = canvasHeight / _gridSize;
+
+    return ClipRect(
+      child: OverflowBox(
+        alignment: Alignment.topLeft,
+        minWidth: canvasWidth,
+        maxWidth: canvasWidth,
+        minHeight: canvasHeight,
+        maxHeight: canvasHeight,
+        child: Transform.translate(
+          offset: Offset(-column * sliceWidth, -row * sliceHeight),
+          child: Image.asset(
+            collection.collectionImageAsset,
+            width: canvasWidth,
+            height: canvasHeight,
+            fit: BoxFit.cover,
+            alignment: Alignment.center,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildBackCard({required int level, required bool isAvailable}) {
+    final text = '$level';
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        Image.asset(
+          _backCardAsset,
+          fit: BoxFit.cover,
+          color: isAvailable ? null : Colors.black.withValues(alpha: 0.25),
+          colorBlendMode: isAvailable ? null : BlendMode.darken,
+        ),
+        Center(
+          child: Stack(
+            alignment: Alignment.center,
+            children: [
+              // Viền tối giúp số rõ trên họa tiết.
+              Text(
+                text,
+                style: GoogleFonts.poppins(
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                  foreground: Paint()
+                    ..style = PaintingStyle.stroke
+                    ..strokeWidth = 4
+                    ..color = Colors.black.withValues(alpha: 0.8),
+                ),
+              ),
+              Text(
+                text,
+                style: GoogleFonts.poppins(
+                  color: isAvailable
+                      ? Colors.white
+                      : Colors.white.withValues(alpha: 0.45),
+                  fontSize: 20,
+                  fontWeight: FontWeight.w800,
+                  height: 1,
+                  shadows: const [
+                    Shadow(
+                      color: Colors.black54,
+                      blurRadius: 3,
+                      offset: Offset(0, 2),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCellFrame() {
+    return IgnorePointer(
+      child: Opacity(
+        opacity: frameOpacity,
+        child: DecoratedBox(
+          decoration: BoxDecoration(
+            border: Border.all(color: Colors.black, width: 1),
+            borderRadius: BorderRadius.circular(5),
           ),
         ),
       ),

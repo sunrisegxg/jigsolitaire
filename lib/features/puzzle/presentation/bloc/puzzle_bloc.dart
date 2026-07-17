@@ -117,10 +117,11 @@ class PuzzleBloc extends Bloc<PuzzleEvent, PuzzleState> {
       ),
     );
 
+    final dealStepMs = (AppConstants.maxDealSequenceMs ~/ board.totalPieces)
+        .clamp(1, AppConstants.dealStepMs)
+        .toInt();
     for (int i = 0; i < board.totalPieces; i++) {
-      await Future<void>.delayed(
-        const Duration(milliseconds: AppConstants.dealStepMs),
-      );
+      await Future<void>.delayed(Duration(milliseconds: dealStepMs));
 
       if (isClosed) return;
 

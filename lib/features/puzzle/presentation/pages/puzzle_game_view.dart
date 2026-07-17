@@ -5,10 +5,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_confetti/flutter_confetti.dart';
 import 'package:jigsolitaire/core/services/interaction_service.dart';
+import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_event.dart';
 import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_state.dart';
-import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
 import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_route_result.dart';
 import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_session.dart';
@@ -20,7 +20,6 @@ import '../bloc/puzzle_bloc.dart';
 import '../bloc/puzzle_event.dart';
 import '../bloc/puzzle_state.dart';
 import '../widgets/game_app_bar/game_app_bar.dart';
-import '../widgets/game_app_bar/game_circle_button.dart';
 import '../widgets/level_clear/coin_wallet.dart';
 import '../widgets/level_clear/flying_coin_layer.dart';
 import '../widgets/level_clear/level_clear_banner.dart';
@@ -236,7 +235,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
               key: _rootStackKey,
               clipBehavior: Clip.none,
               children: [
-                _buildGameContent(state.isCompleted),
+                _buildGameContent(state.isCompleted, widget.config),
 
                 LevelClearBanner(
                   assetPath: AppConstants.levelClearBanner,
@@ -293,20 +292,17 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
     );
   }
 
-  Widget _buildGameContent(bool isCompleted) {
+  Widget _buildGameContent(bool isCompleted, PuzzleLevelConfig config) {
     return Column(
       children: [
         const SizedBox(height: 24),
         GameAppBar(
           isCompleted: isCompleted,
           onSettingsPressed: _showSettingsDialog,
+          config: config,
         ),
         const SizedBox(height: 32),
         _buildPuzzleBoard(),
-        GameCircleButton(
-          onPressed: _resetPuzzle,
-          child: const Icon(Icons.settings, color: Colors.grey),
-        ),
       ],
     );
   }

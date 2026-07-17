@@ -139,7 +139,7 @@ class HomeBottomBar extends StatelessWidget {
               style: TextButton.styleFrom(
                 padding: const EdgeInsets.symmetric(
                   vertical: 12,
-                  horizontal: 48,
+                  horizontal: 32,
                 ),
                 disabledForegroundColor: Colors.white70,
                 shape: RoundedRectangleBorder(

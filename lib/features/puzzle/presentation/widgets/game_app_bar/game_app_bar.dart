@@ -1,25 +1,23 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jigsolitaire/features/game_progress/presentation/bloc/game_progress_bloc.dart';
+import 'package:jigsolitaire/features/puzzle/domain/entities/puzzle_level_config.dart';
 import 'package:jigsolitaire/features/puzzle/presentation/widgets/game_app_bar/game_circle_button.dart';
 
 class GameAppBar extends StatelessWidget {
   final bool isCompleted;
   final VoidCallback onSettingsPressed;
+  final PuzzleLevelConfig config;
+
   const GameAppBar({
     super.key,
     required this.isCompleted,
     required this.onSettingsPressed,
+    required this.config,
   });
 
   @override
   Widget build(BuildContext context) {
-    final currentLevel = context
-        .read<GameProgressBloc>()
-        .state
-        .progress
-        .currentLevel;
+    final level = config.level;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 800),
@@ -37,7 +35,7 @@ class GameAppBar extends StatelessWidget {
                     child: const Icon(Icons.lightbulb, color: Colors.white),
                   ),
                   Text(
-                    'Level $currentLevel',
+                    'Level $level',
                     style: GoogleFonts.poppins(
                       textStyle: const TextStyle(
                         color: Colors.white,

@@ -7,6 +7,7 @@ class AppConstants {
   static const double puzzleAspectRatio = 0.7;
 
   static const int dealStepMs = 70;
+  static const int maxDealSequenceMs = 4000;
   static const int dealAnimationMs = 500;
   static const int beforeFlipDelayMs = 300;
   static const int flipAnimationMs = 600;
