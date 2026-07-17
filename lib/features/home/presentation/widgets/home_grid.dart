@@ -14,6 +14,9 @@ class HomeGrid extends StatelessWidget {
     super.key,
   });
 
+  static const int _gridSize = 5;
+  static const String _backCardAsset = 'assets/images/backcard.jpeg';
+
   final CampaignCollectionDefinition collection;
   final int completedLevelCount;
   final ValueChanged<int> onCompletedLevelTap;
@@ -25,14 +28,11 @@ class HomeGrid extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        const columns = 5;
-        const rows = 5;
         final gap = 4.0 * gapFactor;
         final width = constraints.maxWidth - 24;
-        final availableHeight = constraints.maxHeight - 24;
-        final canvasHeight = availableHeight;
-        final cellWidth = (width - gap * (columns - 1)) / columns;
-        final cellHeight = (canvasHeight - gap * (rows - 1)) / rows;
+        final canvasHeight = constraints.maxHeight - 24;
+        final cellWidth = (width - gap * (_gridSize - 1)) / _gridSize;
+        final cellHeight = (canvasHeight - gap * (_gridSize - 1)) / _gridSize;
 
         return Center(
           child: SizedBox(
@@ -46,8 +46,8 @@ class HomeGrid extends StatelessWidget {
                     cellWidth: cellWidth,
                     cellHeight: cellHeight,
                     gap: gap,
-                    canvasWidth: cellWidth * columns,
-                    canvasHeight: cellHeight * rows,
+                    canvasWidth: cellWidth * _gridSize,
+                    canvasHeight: cellHeight * _gridSize,
                   ),
               ],
             ),
@@ -56,9 +56,6 @@ class HomeGrid extends StatelessWidget {
       },
     );
   }
-
-  static const int _gridSize = 5;
-  static const String _backCardAsset = 'assets/images/backcard.jpeg';
 
   Widget _buildCell({
     required int position,
@@ -71,21 +68,18 @@ class HomeGrid extends StatelessWidget {
     final row = position ~/ _gridSize;
     final column = position % _gridSize;
     final level = collection.startLevel + position;
-
-    final levelDefinition = collection.levels
+    final definition = collection.levels
         .where((item) => item.position == position)
         .firstOrNull;
-
-    final isAvailable = levelDefinition != null;
-    final isCompleted = isAvailable && level <= completedLevelCount;
+    final isContentAvailable = definition != null;
+    final isCompleted = isContentAvailable && level <= completedLevelCount;
+    final isCurrent = isContentAvailable && level == completedLevelCount + 1;
+    final isLocked = !isCompleted && !isCurrent;
     final isDealt = position < dealIndex;
 
-    final left = column * (cellWidth + gap);
-    final top = row * (cellHeight + gap);
-
     return Positioned(
-      left: left,
-      top: top,
+      left: column * (cellWidth + gap),
+      top: row * (cellHeight + gap),
       width: cellWidth,
       height: cellHeight,
       child: AnimatedOpacity(
@@ -115,8 +109,12 @@ class HomeGrid extends StatelessWidget {
                       canvasHeight: canvasHeight,
                     )
                   else
-                    _buildBackCard(level: level, isAvailable: isAvailable),
-                  _buildCellFrame(),
+                    _buildBackCard(
+                      level: level,
+                      isCurrent: isCurrent,
+                      isContentAvailable: isContentAvailable,
+                    ),
+                  _buildCellFrame(isCurrent: isCurrent, isLocked: isLocked),
                 ],
               ),
             ),
@@ -134,7 +132,6 @@ class HomeGrid extends StatelessWidget {
   }) {
     final sliceWidth = canvasWidth / _gridSize;
     final sliceHeight = canvasHeight / _gridSize;
-
     return ClipRect(
       child: OverflowBox(
         alignment: Alignment.topLeft,
@@ -156,48 +153,46 @@ class HomeGrid extends StatelessWidget {
     );
   }
 
-  Widget _buildBackCard({required int level, required bool isAvailable}) {
-    final text = '$level';
-
+  Widget _buildBackCard({
+    required int level,
+    required bool isCurrent,
+    required bool isContentAvailable,
+  }) {
+    final isLocked = !isCurrent;
+    const currentColor = Color(0xFF3B8F7A);
+    const currentTextColor = Color(0xFFE2F5EF);
     return Stack(
       fit: StackFit.expand,
       children: [
         Image.asset(
           _backCardAsset,
           fit: BoxFit.cover,
-          color: isAvailable ? null : Colors.black.withValues(alpha: 0.25),
-          colorBlendMode: isAvailable ? null : BlendMode.darken,
+          color: isLocked ? Colors.grey.shade700 : null,
+          colorBlendMode: isLocked ? BlendMode.overlay : null,
         ),
+        if (isLocked) ColoredBox(color: Colors.black.withValues(alpha: .5)),
         Center(
-          child: Stack(
-            alignment: Alignment.center,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              // Viền tối giúp số rõ trên họa tiết.
-              Text(
-                text,
-                style: GoogleFonts.poppins(
-                  fontSize: 20,
-                  fontWeight: FontWeight.w800,
-                  height: 1,
-                  foreground: Paint()
-                    ..style = PaintingStyle.stroke
-                    ..strokeWidth = 4
-                    ..color = Colors.black.withValues(alpha: 0.8),
+              if (isLocked)
+                Icon(
+                  isContentAvailable
+                      ? Icons.lock_rounded
+                      : Icons.schedule_rounded,
+                  size: 34,
+                  color: Colors.white.withValues(alpha: .9),
                 ),
-              ),
               Text(
-                text,
+                '$level',
                 style: GoogleFonts.poppins(
-                  color: isAvailable
-                      ? Colors.white
-                      : Colors.white.withValues(alpha: 0.45),
-                  fontSize: 20,
+                  color: Colors.white,
+                  fontSize: isCurrent ? 22 : 16,
                   fontWeight: FontWeight.w800,
-                  height: 1,
                   shadows: const [
                     Shadow(
-                      color: Colors.black54,
-                      blurRadius: 3,
+                      color: Colors.black,
+                      blurRadius: 4,
                       offset: Offset(0, 2),
                     ),
                   ],
@@ -206,18 +201,58 @@ class HomeGrid extends StatelessWidget {
             ],
           ),
         ),
+        Positioned(
+          left: 4,
+          right: 4,
+          bottom: 4,
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 2),
+            decoration: BoxDecoration(
+              color: isCurrent
+                  ? currentColor
+                  : Colors.black.withValues(alpha: .72),
+              borderRadius: BorderRadius.circular(5),
+            ),
+            child: Text(
+              isCurrent
+                  ? 'CURRENT'
+                  : isContentAvailable
+                  ? 'LOCKED'
+                  : 'COMING SOON',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.poppins(
+                color: isCurrent ? currentTextColor : Colors.white,
+                fontSize: isContentAvailable ? 8 : 6.5,
+                fontWeight: FontWeight.w800,
+                letterSpacing: .3,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildCellFrame() {
+  Widget _buildCellFrame({required bool isCurrent, required bool isLocked}) {
     return IgnorePointer(
       child: Opacity(
         opacity: frameOpacity,
         child: DecoratedBox(
           decoration: BoxDecoration(
-            border: Border.all(color: Colors.black, width: 1),
+            border: Border.all(
+              color: isCurrent
+                  ? const Color(0xFF69B7A2)
+                  : isLocked
+                  ? const Color(0xFF555B5E)
+                  : Colors.black,
+              width: isCurrent ? 3 : 1,
+            ),
             borderRadius: BorderRadius.circular(5),
+            boxShadow: isCurrent
+                ? const [BoxShadow(color: Color(0x554A9D87), blurRadius: 5)]
+                : null,
           ),
         ),
       ),

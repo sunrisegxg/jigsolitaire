@@ -175,7 +175,7 @@ class _MasterChallengeView extends StatelessWidget {
                         itemCount: state.cards.length,
                         gridDelegate:
                             const SliverGridDelegateWithFixedCrossAxisCount(
-                              crossAxisCount: 3,
+                              crossAxisCount: 2,
                               crossAxisSpacing: 8,
                               mainAxisSpacing: 12,
                               childAspectRatio: .62,
@@ -219,6 +219,7 @@ class _MasterCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final buttonStyle = _buttonStyle;
     return GestureDetector(
       onTap: onTap,
       child: ClipRRect(
@@ -267,18 +268,45 @@ class _MasterCard extends StatelessWidget {
               bottom: 6,
               child: DecoratedBox(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF056E45),
+                  gradient: LinearGradient(
+                    begin: Alignment.topCenter,
+                    end: Alignment.bottomCenter,
+                    colors: buttonStyle.colors,
+                  ),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: buttonStyle.borderColor, width: 1),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Colors.black38,
+                      blurRadius: 4,
+                      offset: Offset(0, 3),
+                    ),
+                  ],
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(6),
-                  child: Text(
-                    _label,
-                    textAlign: TextAlign.center,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        buttonStyle.icon,
+                        color: buttonStyle.foregroundColor,
+                        size: 15,
+                      ),
+                      const SizedBox(width: 4),
+                      Flexible(
+                        child: Text(
+                          _label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: buttonStyle.foregroundColor,
+                            fontWeight: FontWeight.w800,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
@@ -296,4 +324,51 @@ class _MasterCard extends StatelessWidget {
     MasterCardState.completed => 'Completed',
     MasterCardState.comingSoon => 'Coming soon',
   };
+
+  _MasterButtonStyle get _buttonStyle => switch (data.state) {
+    MasterCardState.locked => const _MasterButtonStyle(
+      colors: [Color(0xFF7D8588), Color(0xFF4F5659)],
+      borderColor: Color(0xFFB8BEC0),
+      foregroundColor: Colors.white,
+      icon: Icons.lock_rounded,
+    ),
+    MasterCardState.purchasable => const _MasterButtonStyle(
+      colors: [Color(0xFFFFD95A), Color(0xFFF2A900)],
+      borderColor: Color(0xFFFFF0A8),
+      foregroundColor: Color(0xFF5B3A00),
+      icon: Icons.monetization_on_rounded,
+    ),
+    MasterCardState.unlocked => const _MasterButtonStyle(
+      colors: [Color(0xFF4FD3FF), Color(0xFF0077B6)],
+      borderColor: Color(0xFFA9EAFF),
+      foregroundColor: Colors.white,
+      icon: Icons.play_arrow_rounded,
+    ),
+    MasterCardState.completed => const _MasterButtonStyle(
+      colors: [Color(0xFF56C596), Color(0xFF087F5B)],
+      borderColor: Color(0xFFB7F5DA),
+      foregroundColor: Colors.white,
+      icon: Icons.check_circle_rounded,
+    ),
+    MasterCardState.comingSoon => const _MasterButtonStyle(
+      colors: [Color(0xFF9C6ADE), Color(0xFF5D35A3)],
+      borderColor: Color(0xFFD8C4F5),
+      foregroundColor: Colors.white,
+      icon: Icons.schedule_rounded,
+    ),
+  };
+}
+
+class _MasterButtonStyle {
+  const _MasterButtonStyle({
+    required this.colors,
+    required this.borderColor,
+    required this.foregroundColor,
+    required this.icon,
+  });
+
+  final List<Color> colors;
+  final Color borderColor;
+  final Color foregroundColor;
+  final IconData icon;
 }

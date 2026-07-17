@@ -124,18 +124,18 @@ class _SettingDialogState extends State<SettingDialog> {
                         await context.read<InteractionService>().tap();
                       },
                     ),
-                    const SizedBox(width: 20),
-                    _buildIconButton(
-                      disabledIcon: Icons.notifications_off,
-                      icon: Icons.notifications,
-                      isEnabled: settings.notificationEnabled,
-                      onPressed: () async {
-                        context.read<SettingsBloc>().add(
-                          const SettingToggled(SettingType.notification),
-                        );
-                        await context.read<InteractionService>().tap();
-                      },
-                    ),
+                    // const SizedBox(width: 20),
+                    // _buildIconButton(
+                    //   disabledIcon: Icons.notifications_off,
+                    //   icon: Icons.notifications,
+                    //   isEnabled: settings.notificationEnabled,
+                    //   onPressed: () async {
+                    //     context.read<SettingsBloc>().add(
+                    //       const SettingToggled(SettingType.notification),
+                    //     );
+                    //     await context.read<InteractionService>().tap();
+                    //   },
+                    // ),
                   ],
                 ),
 
