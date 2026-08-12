@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:jigsolitaire/features/game_progress/domain/entities/game_progress.dart';
 import 'package:jigsolitaire/features/game_progress/domain/repositories/game_progress_repository.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -23,7 +24,7 @@ class LocalGameProgressRepository implements GameProgressRepository {
     final aggregate = await _preferences.getString(_aggregateKey);
     if (aggregate != null) {
       try {
-        return _decode(aggregate);
+        return _withDebugUnlocks(_decode(aggregate));
       } catch (_) {
         // Fall back to the legacy keys without overwriting the malformed value.
       }
@@ -39,7 +40,12 @@ class LocalGameProgressRepository implements GameProgressRepository {
       coins: coins < 0 ? 0 : coins,
     );
     await save(migrated);
-    return migrated;
+    return _withDebugUnlocks(migrated);
+  }
+
+  GameProgress _withDebugUnlocks(GameProgress progress) {
+    if (!kDebugMode || progress.completedLevelCount >= 24) return progress;
+    return progress.copyWith(completedLevelCount: 24);
   }
 
   @override

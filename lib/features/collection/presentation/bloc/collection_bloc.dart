@@ -64,6 +64,7 @@ class CollectionBloc extends Bloc<CollectionEvent, CollectionState> {
     if (progress.completedLevelCount >= definition.startLevel - 1) {
       return CollectionProgressState.inProgress;
     }
+    //TODO:
     return CollectionProgressState.locked;
   }
 

@@ -27,10 +27,9 @@ class GameDialog extends StatelessWidget {
         constraints: const BoxConstraints(maxWidth: 380),
         padding: const EdgeInsets.fromLTRB(22, 20, 22, 18),
         decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [Color(0xFF2CB89C), Color(0xFF087F5B)],
+          image: const DecorationImage(
+            image: AssetImage('assets/images/dialog_bg.png'),
+            fit: BoxFit.cover,
           ),
           borderRadius: BorderRadius.circular(18),
           border: Border.all(color: const Color(0xFFB9F6E5), width: 2),
@@ -53,7 +52,7 @@ class GameDialog extends StatelessWidget {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: Icon(icon, color: const Color(0xFF087F5B), size: 34),
+                child: Icon(icon, color: Colors.blue, size: 34),
               ),
               const SizedBox(height: 12),
             ],
@@ -61,7 +60,7 @@ class GameDialog extends StatelessWidget {
               title,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                color: Colors.white,
+                color: Colors.black87,
                 fontSize: 24,
                 fontWeight: FontWeight.w800,
               ),
@@ -71,7 +70,7 @@ class GameDialog extends StatelessWidget {
               message,
               textAlign: TextAlign.center,
               style: GoogleFonts.poppins(
-                color: Colors.white.withValues(alpha: .92),
+                color: Colors.black87,
                 fontSize: 15,
                 height: 1.4,
               ),
@@ -111,7 +110,7 @@ class GameDialogButton extends StatelessWidget {
                 },
                 style: FilledButton.styleFrom(
                   backgroundColor: const Color(0xFFFFC857),
-                  foregroundColor: const Color(0xFF075D45),
+                  foregroundColor: Colors.white,
                   padding: const EdgeInsets.symmetric(horizontal: 24),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -125,8 +124,8 @@ class GameDialogButton extends StatelessWidget {
                   onPressed();
                 },
                 style: OutlinedButton.styleFrom(
-                  foregroundColor: Colors.white,
-                  side: const BorderSide(color: Colors.white70),
+                  foregroundColor: Colors.black87,
+                  side: const BorderSide(color: Colors.black87),
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(10),

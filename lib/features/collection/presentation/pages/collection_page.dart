@@ -128,7 +128,7 @@ class _CollectionCard extends StatelessWidget {
                 fit: BoxFit.cover,
               )
             else
-              Image.asset('assets/images/backcard2.jpg', fit: BoxFit.cover),
+              Image.asset('assets/images/backcard2.png', fit: BoxFit.cover),
             if (!completed)
               ColoredBox(color: Colors.black.withValues(alpha: .42)),
             Positioned(

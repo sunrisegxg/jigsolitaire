@@ -17,7 +17,7 @@ class HomeGrid extends StatelessWidget {
   });
 
   static const int _gridSize = 5;
-  static const String _backCardAsset = 'assets/images/backcard.jpeg';
+  static const String _backCardAsset = 'assets/images/backcard.png';
 
   final CampaignCollectionDefinition collection;
   final int completedLevelCount;

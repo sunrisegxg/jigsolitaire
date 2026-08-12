@@ -25,7 +25,10 @@ class _SettingDialogState extends State<SettingDialog> {
           child: Container(
             width: 320,
             decoration: BoxDecoration(
-              color: const Color.fromARGB(255, 37, 154, 130),
+              image: DecorationImage(
+                image: AssetImage('assets/images/dialog_bg.png'),
+                fit: BoxFit.cover,
+              ),
               borderRadius: BorderRadius.circular(8),
             ),
             child: Column(
@@ -45,7 +48,7 @@ class _SettingDialogState extends State<SettingDialog> {
                         },
                         icon: const Icon(
                           Icons.close,
-                          color: Colors.white,
+                          color: Colors.black,
                           size: 28,
                         ),
                       ),
@@ -178,7 +181,7 @@ class _SettingDialogState extends State<SettingDialog> {
               Icon(
                 isEnabled ? icon : disabledIcon,
                 size: 30,
-                color: Colors.green.shade900,
+                color: Colors.blue,
               ),
         ),
       ),
@@ -209,12 +212,12 @@ class _SettingDialogState extends State<SettingDialog> {
         ),
         child: Column(
           children: [
-            Icon(icon, size: 26, color: Colors.green.shade900),
+            Icon(icon, size: 26, color: Colors.blue),
             Text(
               text,
               style: TextStyle(
                 fontSize: 16,
-                color: Colors.green.shade900,
+                color: Colors.blue,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -228,14 +231,14 @@ class _SettingDialogState extends State<SettingDialog> {
     return Stack(
       alignment: Alignment.center,
       children: [
-        Icon(Icons.vibration, size: 30, color: Colors.green.shade900),
+        Icon(Icons.vibration, size: 30, color: Colors.blue),
         if (!isEnabled)
           Transform.rotate(
             angle: -0.8,
             child: Container(
               width: 2.5,
               height: 28,
-              decoration: BoxDecoration(color: Colors.green.shade900),
+              decoration: BoxDecoration(color: Colors.blue),
             ),
           ),
       ],

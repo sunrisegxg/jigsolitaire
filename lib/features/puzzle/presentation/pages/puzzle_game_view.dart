@@ -229,71 +229,83 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
       },
       builder: (context, state) {
         return Scaffold(
-          backgroundColor: AppConstants.puzzleBackgroundColor,
-          body: SafeArea(
-            child: Stack(
-              key: _rootStackKey,
-              clipBehavior: Clip.none,
-              children: [
-                _buildGameContent(state.isCompleted, widget.config),
-
-                LevelModeIntroOverlay(
-                  mode: widget.config.mode,
-                  visible:
-                      state.phase == PuzzleGamePhase.loading ||
-                      state.phase == PuzzleGamePhase.dealing ||
-                      state.phase == PuzzleGamePhase.flipping,
+          body: Stack(
+            children: [
+              Positioned.fill(
+                child: Image.asset(
+                  'assets/images/background2.png',
+                  fit: BoxFit.cover,
                 ),
+              ),
+              SafeArea(
+                child: Stack(
+                  key: _rootStackKey,
+                  clipBehavior: Clip.none,
+                  children: [
+                    _buildGameContent(state.isCompleted, widget.config),
 
-                LevelClearBanner(
-                  assetPath: AppConstants.levelClearBanner,
-                  controller: _bannerController,
-                  opacity: _bannerOpacity,
-                  slide: _bannerSlide,
-                  widthScale: _bannerWidthScale,
-                  heightScale: _bannerHeightScale,
-                  textReveal: _bannerTextReveal,
-                ),
-
-                if (_showRewardPanel)
-                  Positioned(
-                    top: 92,
-                    right: 20,
-                    child: ScaleTransition(
-                      scale: _walletScale,
-                      child: CoinWallet(key: _walletKey, coins: _walletCoins),
+                    LevelModeIntroOverlay(
+                      mode: widget.config.mode,
+                      visible:
+                          state.phase == PuzzleGamePhase.loading ||
+                          state.phase == PuzzleGamePhase.dealing ||
+                          state.phase == PuzzleGamePhase.flipping,
                     ),
-                  ),
 
-                Positioned(
-                  left: 0,
-                  right: 0,
-                  bottom: 30,
-                  child: LevelClearRewardPanel(
-                    rewardKey: _rewardKey,
-                    rewardCoins: _rewardCoins,
-                    rewardOpacity: _rewardOpacity,
-                    rewardScale: _rewardScale,
-                    buttonOpacity: _nextButtonOpacity,
-                    buttonSlide: _nextButtonSlide,
-                    isLocked: _nextButtonLocked,
-                    onNextPressed: _onNextPressed,
-                  ),
-                ),
+                    LevelClearBanner(
+                      assetPath: AppConstants.levelClearBanner,
+                      controller: _bannerController,
+                      opacity: _bannerOpacity,
+                      slide: _bannerSlide,
+                      widthScale: _bannerWidthScale,
+                      heightScale: _bannerHeightScale,
+                      textReveal: _bannerTextReveal,
+                    ),
 
-                if (_showFlyingCoins)
-                  Positioned.fill(
-                    child: IgnorePointer(
-                      child: FlyingCoinLayer(
-                        animation: _coinFlyController,
-                        start: _coinStart,
-                        end: _coinEnd,
-                        coinCount: 12,
+                    if (_showRewardPanel)
+                      Positioned(
+                        top: 92,
+                        right: 20,
+                        child: ScaleTransition(
+                          scale: _walletScale,
+                          child: CoinWallet(
+                            key: _walletKey,
+                            coins: _walletCoins,
+                          ),
+                        ),
+                      ),
+
+                    Positioned(
+                      left: 0,
+                      right: 0,
+                      bottom: 30,
+                      child: LevelClearRewardPanel(
+                        rewardKey: _rewardKey,
+                        rewardCoins: _rewardCoins,
+                        rewardOpacity: _rewardOpacity,
+                        rewardScale: _rewardScale,
+                        buttonOpacity: _nextButtonOpacity,
+                        buttonSlide: _nextButtonSlide,
+                        isLocked: _nextButtonLocked,
+                        onNextPressed: _onNextPressed,
                       ),
                     ),
-                  ),
-              ],
-            ),
+
+                    if (_showFlyingCoins)
+                      Positioned.fill(
+                        child: IgnorePointer(
+                          child: FlyingCoinLayer(
+                            animation: _coinFlyController,
+                            start: _coinStart,
+                            end: _coinEnd,
+                            coinCount: 12,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ],
           ),
         );
       },
@@ -310,7 +322,7 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
           config: config,
         ),
         const SizedBox(height: 32),
-        _buildPuzzleBoard(),
+        Expanded(child: _buildPuzzleBoard()),
       ],
     );
   }
@@ -337,11 +349,11 @@ class _PuzzleGameViewState extends State<PuzzleGameView>
   }
 
   Widget _buildPuzzleBoard() {
-    return Center(
-      child: AspectRatio(
-        aspectRatio: AppConstants.puzzleAspectRatio,
-        child: const Padding(
-          padding: EdgeInsets.all(8),
+    return const Padding(
+      padding: EdgeInsets.all(8),
+      child: Center(
+        child: AspectRatio(
+          aspectRatio: AppConstants.puzzleAspectRatio,
           child: PuzzleBoardWidget(),
         ),
       ),

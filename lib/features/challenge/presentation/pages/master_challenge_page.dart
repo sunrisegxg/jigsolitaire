@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/widgets/game_dialog.dart';
 import '../../../../core/services/interaction_service.dart';
@@ -115,7 +116,7 @@ class _MasterChallengeView extends StatelessWidget {
                 ),
               ),
               Positioned(
-                top: 40,
+                top: 60,
                 right: 20,
                 child: CoinWallet(coins: state.progress.coins),
               ),
@@ -150,13 +151,30 @@ class _MasterChallengeView extends StatelessWidget {
                               ),
                             ),
                           ),
-                          const Text(
-                            'Master Challenge',
-                            style: TextStyle(
-                              color: Color(0xFF056E45),
-                              fontSize: 32,
-                              fontWeight: FontWeight.bold,
-                            ),
+                          Stack(
+                            children: [
+                              Text(
+                                'Master Challenge',
+                                style: GoogleFonts.poppins(
+                                  textStyle: TextStyle(
+                                    fontSize: 32,
+                                    fontWeight: FontWeight.bold,
+                                    foreground: Paint()
+                                      ..style = PaintingStyle.stroke
+                                      ..strokeWidth = 8
+                                      ..color = const Color(0xFF056E45),
+                                  ),
+                                ),
+                              ),
+                              Text(
+                                'Master Challenge',
+                                style: GoogleFonts.poppins(
+                                  fontSize: 32,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),

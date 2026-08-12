@@ -33,40 +33,26 @@ class LevelClearBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Positioned(
-      top: 20,
-      left: 20,
-      right: 20,
+      top: 0,
+      left: 0,
+      right: 0,
       child: IgnorePointer(
         child: AnimatedBuilder(
           animation: controller,
           builder: (context, child) {
             return SlideTransition(
               position: slide,
-              child: FadeTransition(
-                opacity: opacity,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.diagonal3Values(
-                        widthScale.value,
-                        heightScale.value,
-                        1,
-                      ),
-                      child: Image.asset(
-                        assetPath,
-                        fit: BoxFit.cover,
-                        height: 60,
-                        width: 300,
-                      ),
-                    ),
-                    _RevealText(animation: textReveal),
-                  ],
+              child: Opacity(
+                opacity: opacity.value,
+                child: Transform.scale(
+                  scaleX: widthScale.value,
+                  scaleY: heightScale.value,
+                  child: child,
                 ),
               ),
             );
           },
+          child: Image.asset(assetPath, fit: BoxFit.fitHeight, height: 150),
         ),
       ),
     );
